@@ -8,10 +8,12 @@
  */
 package fr.vendredi.web.selenium;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static com.palominolabs.xpath.XPathUtils.getXPathString;
 import static org.fest.assertions.Assertions.assertThat;
 
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.math.NumberUtils;
@@ -20,6 +22,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
 
 import fr.vendredi.domain.Civility;
 import fr.vendredi.web.selenium.support.Page;
@@ -32,6 +35,7 @@ import fr.vendredi.web.selenium.support.element.DateTimeRange;
 import fr.vendredi.web.selenium.support.element.ManyBooleans;
 import fr.vendredi.web.selenium.support.element.ManyEnums;
 
+@SuppressWarnings("unused")
 public class TempIT {
 	@Rule
 	public WebClientRule webClientRule = new WebClientRule(this);
@@ -92,6 +96,86 @@ public class TempIT {
 			String xpathExpression = "//input[@type='radio' and @for=contains(@for, " + getXPathString(id + ":" + value.ordinal()) + ")" + "]";
 			return webClient.find(By.xpath(xpathExpression)).isSelected();
 		}
+	}
+
+	public static class ListBox extends CustomElement {
+		public ListBox(String id) {
+			super(id);
+		}
+
+		private List<WebElement> getOptions() {
+			String xpath = "//select[@id=" + getXPathString(id) + "]/option";
+			return webClient.findAll(By.xpath(xpath));
+
+		}
+
+		public List<String> texts() {
+			List<String> ret = newArrayList();
+			for (WebElement webElement : getOptions()) {
+				ret.add(webElement.getText());
+			}
+			return ret;
+		}
+
+		public List<String> selectedTexts() {
+			List<String> ret = newArrayList();
+			for (WebElement webElement : getOptions()) {
+				if (webElement.isSelected()) {
+					ret.add(webElement.getText());
+				}
+			}
+			return ret;
+		}
+
+		public List<String> selectedValues() {
+			List<String> ret = newArrayList();
+			for (WebElement webElement : getOptions()) {
+				if (webElement.isSelected()) {
+					ret.add(webElement.getAttribute("value"));
+				}
+			}
+			return ret;
+		}
+
+		public List<String> values() {
+			List<String> ret = newArrayList();
+			String xpath = "//select[@id=" + getXPathString(id) + "]/option";
+			for (WebElement webElement : getOptions()) {
+				ret.add(webElement.getAttribute("value"));
+			}
+			return ret;
+		}
+
+		public void text(String... texts) {
+			for (String text : texts) {
+				String xpath = "//select[@id=" + getXPathString(id) + "]/option[contains(text(), " + getXPathString(text) + ")]";
+				webClient.click(By.xpath(xpath));
+			}
+		}
+
+		public void value(String... values) {
+			for (String value : values) {
+				String xpath = "//select[@id=" + getXPathString(id) + "]/option[contains(@value, " + getXPathString(value) + ")]";
+				webClient.click(By.xpath(xpath));
+			}
+		}
+		
+		public void selectAll() {
+			for (WebElement webElement : getOptions()) {
+				if (!webElement.isSelected()) {
+					webClient.click(webElement);
+				}
+			}
+		}
+
+		public void unselectAll() {
+			for (WebElement webElement : getOptions()) {
+				if (webElement.isSelected()) {
+					webClient.click(webElement);
+				}
+			}
+		}
+
 	}
 
 	public static class StringInput extends Input<String> {
@@ -164,6 +248,7 @@ public class TempIT {
 		Checkbox enabled = new Checkbox("isEnabled2");
 		ChooseEnum<Civility> chooseEnum = new ChooseEnum<Civility>("civility2");
 		IntegerInput age = new IntegerInput("j_password");
+		ListBox food = new ListBox("food");
 	}
 
 	@Page
@@ -179,16 +264,58 @@ public class TempIT {
 		webClient.page("/login.faces?locale=en");
 		StopWatch stopWatch = new StopWatch();
 		stopWatch.start();
+		webClient.message("ceci cela");
+		// listBox();
+		// autocomplete();
+		// chooseEnums();
+		// chooseBooleans();
+		// dateRange();
+		// typedInput();
+		// login();
+		stopWatch.stop();
+		System.out.println("----------------------");
+		System.out.println(stopWatch.toString());
+		TimeUnit.SECONDS.sleep(5);
+	}
 
-		loginPage.tests.homeAddress.autocomplete("Par", "Paris");
-		loginPage.tests.homeAddress.autocomplete("New-York");
-		assertThat(loginPage.tests.homeAddress.values()).containsExactly("Paris", "New-York");
-		loginPage.tests.homeAddress.delete("Paris");
-		assertThat(loginPage.tests.homeAddress.values()).containsExactly("New-York");
-		loginPage.tests.homeAddress.delete("New-York");
-		assertThat(loginPage.tests.homeAddress.values()).isEmpty();
-		
-		
+	private void listBox() {
+		assertThat(loginPage.tests.food.selectedValues()).isEmpty();
+		assertThat(loginPage.tests.food.values()).hasSize(3).containsExactly("Fry Checken", "Tomyam Soup", "Mixed Rice");
+		assertThat(loginPage.tests.food.selectedTexts()).isEmpty();
+		assertThat(loginPage.tests.food.texts()).hasSize(3).containsExactly("Food1 - Fry Checken", "Food1 - Tomyam Soup", "Food1 - Mixed Rice");
+		loginPage.tests.food.text("Food1 - Fry Checken");
+		assertThat(loginPage.tests.food.selectedTexts()).hasSize(1).contains("Food1 - Fry Checken");
+		assertThat(loginPage.tests.food.selectedValues()).hasSize(1).contains("Fry Checken");
+		loginPage.tests.food.value("Tomyam Soup");
+		assertThat(loginPage.tests.food.selectedValues()).hasSize(2).contains("Fry Checken", "Tomyam Soup");
+		loginPage.tests.food.unselectAll();
+		assertThat(loginPage.tests.food.selectedValues()).isEmpty();
+		loginPage.tests.food.selectAll();
+		assertThat(loginPage.tests.food.selectedValues()).hasSize(3).containsExactly("Fry Checken", "Tomyam Soup", "Mixed Rice");
+	}
+
+	private void login() {
+		System.out.println("Username is " + loginPage.login.username.value());
+		loginPage.login.username.type("toto");
+		System.out.println("Username is " + loginPage.login.username.value());
+		loginPage.login.enter();
+	}
+
+	private void typedInput() {
+		loginPage.tests.age.type(12);
+		assertThat(loginPage.tests.age.value()).isEqualTo(12);
+	}
+
+	private void dateRange() {
+		loginPage.tests.dateRange.from(new Date());
+	}
+
+	private void chooseBooleans() {
+		loginPage.tests.chooseBooleans.choose(true);
+		loginPage.tests.chooseBooleans.choose(true, false);
+	}
+
+	private void chooseEnums() {
 		System.out.println(loginPage.tests.chooseEnum.isSelected(Civility.MR));
 		loginPage.tests.chooseEnum.select(Civility.MR);
 		System.out.println(loginPage.tests.chooseEnum.isSelected(Civility.MR));
@@ -204,23 +331,20 @@ public class TempIT {
 		loginPage.tests.chooseEnums.choose(Civility.MS);
 		loginPage.tests.chooseEnums.choose(Civility.MS);
 		loginPage.tests.chooseEnums.values();
-		
-		loginPage.tests.chooseBooleans.choose(true);
-		loginPage.tests.chooseBooleans.choose(true, false);
-		loginPage.tests.dateRange.from(new Date());
-		
-		
-		loginPage.tests.age.type(12);
-		assertThat(loginPage.tests.age.value()).isEqualTo(12);
-		
-		
-		System.out.println("Username is " + loginPage.login.username.value());
-		loginPage.login.username.type("toto");
-		System.out.println("Username is " + loginPage.login.username.value());
-		loginPage.login.enter();
-		stopWatch.stop();
-		System.out.println("----------------------");
-		System.out.println(stopWatch.toString());
-		TimeUnit.SECONDS.sleep(5);
 	}
+
+	private void autocomplete() {
+		assertThat(loginPage.tests.homeAddress.autocompleteValues("ii")).hasSize(2).containsExactly("Paris", "San Francisco");
+		loginPage.tests.homeAddress.autocomplete("Par", "Paris");
+		loginPage.tests.homeAddress.autocomplete("New-York");
+		assertThat(loginPage.tests.homeAddress.values()).containsExactly("Paris", "New-York");
+		loginPage.tests.homeAddress.reset();
+		assertThat(loginPage.tests.homeAddress.values()).isEmpty();
+		loginPage.tests.homeAddress.delete("Paris");
+		loginPage.tests.homeAddress.autocomplete("New-York");
+		assertThat(loginPage.tests.homeAddress.values()).containsExactly("New-York");
+		loginPage.tests.homeAddress.delete("New-York");
+		assertThat(loginPage.tests.homeAddress.values()).isEmpty();
+	}
+
 }

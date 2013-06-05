@@ -8,17 +8,28 @@
  */
 package fr.vendredi.web.selenium.support.element;
 
+import org.openqa.selenium.By;
+
 import fr.vendredi.web.selenium.support.WebClient;
 
 public abstract class CustomElement {
 	protected String id;
+	protected By by;
 	protected WebClient webClient;
 
 	public CustomElement() {
+	}
 
+	public CustomElement(By by) {
+		this.by = by;
 	}
 
 	public CustomElement(String id) {
+		this(By.id(id));
 		this.id = id;
+	}
+	
+	protected By by() {
+		return by;
 	}
 }

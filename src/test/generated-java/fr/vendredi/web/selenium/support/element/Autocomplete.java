@@ -12,34 +12,68 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.palominolabs.xpath.XPathUtils.getXPathString;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebElement;
+
+import com.palominolabs.xpath.XPathUtils;
 
 public class Autocomplete extends CustomElement {
 	private final String id;
+	private final By byInput;
 
 	public Autocomplete(String id) {
 		this.id = id;
+		this.byInput = By.id(id + "_input");
+	}
+
+	public List<String> autocompleteValues(String match) {
+		webClient.fill(webClient.find(byInput), match);
+		List<String> ret = newArrayList();
+		for (WebElement webElement : webClient.findAll(By.xpath("//div[@id=" + XPathUtils.getXPathString(id + "_panel") + "]/*/li"))) {
+			ret.add(webElement.getText());
+		}
+		for (int i = 0; i < match.length(); i++) {
+			webClient.find(byInput).sendKeys(Keys.BACK_SPACE);
+		}
+		return ret;
 	}
 
 	public void autocomplete(String text) {
-		webClient.autocomplete(webClient.find(By.id(id + "_input")), text);
+		autocomplete(text, text);
 	}
 
 	public void autocomplete(String text, String match) {
-		webClient.autocomplete(webClient.find(By.id(id + "_input")), text, match);
+		webClient.fill(byInput, text);
+		String xpath = "//li[@data-item-label=" + XPathUtils.getXPathString(match) + "]";
+		// webClient.find(By.xpath(xpath)).click();
+		webClient.click(By.xpath(xpath));
 	}
 
 	public void delete(String value) {
+		if (!values().contains(value)) {
+			return;
+		}
 		String xpath = "//div[@id= " + getXPathString(id) + "]//span[@class='ui-autocomplete-token-label' and text()=" + getXPathString(value)
 				+ "]/../span[@class='ui-autocomplete-token-icon ui-icon ui-icon-close']";
+		System.out.println(xpath);
 		webClient.click(By.xpath(xpath));
+
+		String xpathLi = "//div[@id= " + getXPathString(id) + "]//span[@class='ui-autocomplete-token-label' and text()=" + getXPathString(value) + "]";
+		webClient.isRemoved(By.xpath(xpathLi));
+		try {
+			TimeUnit.MILLISECONDS.sleep(500);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	public List<String> values() {
 		List<String> ret = newArrayList();
-		// we test for the number of values, because if there is no values, selenium will wait for the timeout to occurr
+		// we test for the number of values, because if there is no values, selenium will wait for the timeout to occur
 		if (getNbValues() >= 1) {
 			String spanValues = "//div[@id= " + getXPathString(id) + "]//span[@class='ui-autocomplete-token-label']";
 			for (WebElement webElement : webClient.findAll(By.xpath(spanValues))) {
@@ -50,9 +84,16 @@ public class Autocomplete extends CustomElement {
 	}
 
 	private int getNbValues() {
-		String findUlChildren = "//div[@id= " + getXPathString(id) + "]/ul/*";
-		int count = webClient.findAll(By.xpath(findUlChildren)).size();
+		String ulChildren = "//div[@id= " + getXPathString(id) + "]/ul/*";
+		int count = webClient.findAll(By.xpath(ulChildren)).size();
 		// -1 so we do not count the input text in which we enter our input
 		return count - 1;
+	}
+
+	public void reset() {
+		for (String value : values()) {
+			System.out.println("Deleting " + value + " from reset");
+			delete(value);
+		}
 	}
 }
