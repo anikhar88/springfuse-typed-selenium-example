@@ -22,23 +22,23 @@
 				<appcc:messages id="loginMessages" />
 			</h:panelGrid>
 			<h:panelGrid columns="2">
-			Select
-			<h:selectManyListbox  id="food">
-			   	<f:selectItem itemValue="Fry Checken" itemLabel="Food1 - Fry Checken" />
-			   	<f:selectItem itemValue="Tomyam Soup" itemLabel="Food1 - Tomyam Soup" />
-			   	<f:selectItem itemValue="Mixed Rice" itemLabel="Food1 - Mixed Rice" />
-			</h:selectManyListbox>
+<!-- 			Select -->
+<!-- 			<h:selectManyListbox  id="food"> -->
+<!-- 			   	<f:selectItem itemValue="Fry Checken" itemLabel="Food1 - Fry Checken" /> -->
+<!-- 			   	<f:selectItem itemValue="Tomyam Soup" itemLabel="Food1 - Tomyam Soup" /> -->
+<!-- 			   	<f:selectItem itemValue="Mixed Rice" itemLabel="Food1 - Mixed Rice" /> -->
+<!-- 			</h:selectManyListbox> -->
 
-			<app:multiAutoComplete id="homeAddressSelector" value="#{accountSearchForm.homeAddressSelector.selected}" label="account_homeAddress" 
-				controller="#{addressController}" completeMethod="completeFullText" converter="#{addressJsfConverter}" />
-			<app:multiAutoComplete id="securityRolesSelector" value="#{accountSearchForm.account.securityRoles}" label="account_securityRoles" 
-				controller="#{roleController}" completeMethod="completeFullText" converter="#{roleJsfConverter}" />
+<!-- 			<app:multiAutoComplete id="homeAddressSelector" value="#{accountSearchForm.homeAddressSelector.selected}" label="account_homeAddress"  -->
+<!-- 				controller="#{addressController}" completeMethod="completeFullText" converter="#{addressJsfConverter}" /> -->
+<!-- 			<app:multiAutoComplete id="securityRolesSelector" value="#{accountSearchForm.account.securityRoles}" label="account_securityRoles"  -->
+<!-- 				controller="#{roleController}" completeMethod="completeFullText" converter="#{roleJsfConverter}" /> -->
 			
-				<app:inputBoolean id="isEnabled2" value="#{true}" label="account_isEnabled" required="true" />
-				<app:selectOneRadio id="civility2" value="#{true}" values="#{civilityItems.list}" label="account_civility" />
-				<app:rangeDateTime id="birthDate" value="#{accountSearchForm.birthDateRange}" label="account_birthDate" />
-				<app:selectManyBoolean id="isEnabled" value="#{accountSearchForm.isEnabledSelector}" label="account_isEnabled" />
-				<app:selectManyEnum id="civility" value="#{accountSearchForm.civilitySelector}" items="#{civilityItems}" converter="#{civilityJsfConverter}" nullAllowed="true" label="account_civility" />
+<!-- 				<app:inputBoolean id="isEnabled2" value="#{true}" label="account_isEnabled" required="true" /> -->
+<!-- 				<app:selectOneRadio id="civility2" value="#{true}" values="#{civilityItems.list}" label="account_civility" /> -->
+<!-- 				<app:rangeDateTime id="birthDate" value="#{accountSearchForm.birthDateRange}" label="account_birthDate" /> -->
+<!-- 				<app:selectManyBoolean id="isEnabled" value="#{accountSearchForm.isEnabledSelector}" label="account_isEnabled" /> -->
+<!-- 				<app:selectManyEnum id="civility" value="#{accountSearchForm.civilitySelector}" items="#{civilityItems}" converter="#{civilityJsfConverter}" nullAllowed="true" label="account_civility" /> -->
 				<h:outputLabel for="j_username" value="#{msg.login_login}" styleClass="required" />
 				<h:inputText id="j_username" label="#{msg.login_login}" required="true" />
 				<h:outputLabel for="j_password" value="#{msg.login_password}" styleClass="required" />

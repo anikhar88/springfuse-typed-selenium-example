@@ -16,13 +16,19 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.lang.time.StopWatch;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+
+import com.google.common.base.Function;
 
 import fr.vendredi.domain.Civility;
 import fr.vendredi.web.selenium.support.Page;
@@ -88,12 +94,12 @@ public class TempIT {
 		}
 
 		public void select(T value) {
-			String xpathExpression = "//label[@for=contains(@for, " + getXPathString(id + ":" + value.ordinal()) + ")" + "]";
+			String xpathExpression = "//label[@for=contains(@for, " + getXPathString(id + ":" + value.ordinal()) + ")]";
 			webClient.click(By.xpath(xpathExpression));
 		}
 
 		public boolean isSelected(T value) {
-			String xpathExpression = "//input[@type='radio' and @for=contains(@for, " + getXPathString(id + ":" + value.ordinal()) + ")" + "]";
+			String xpathExpression = "//input[@type='radio' and @for=contains(@for, " + getXPathString(id + ":" + value.ordinal()) + ")]";
 			return webClient.find(By.xpath(xpathExpression)).isSelected();
 		}
 	}
@@ -159,7 +165,7 @@ public class TempIT {
 				webClient.click(By.xpath(xpath));
 			}
 		}
-		
+
 		public void selectAll() {
 			for (WebElement webElement : getOptions()) {
 				if (!webElement.isSelected()) {
@@ -257,9 +263,104 @@ public class TempIT {
 		Tests tests;
 	}
 
+	public static class Table extends CustomElement {
+		public Table(String id) {
+			super(id);
+		}
+	}
+
+	public static class OrderBy extends CustomElement {
+		public OrderBy(String id) {
+			super(id);
+		}
+
+		private WebElement icon() {
+			String xpath = "//tr/th[@id=" + getXPathString("form:searchResults:" + id) + "]/span[2]";
+			return webClient.find(By.xpath(xpath));
+
+		}
+
+		public boolean isUp() {
+			String attribute = icon().getAttribute("class");
+			return attribute.contains("ui-icon-triangle-1-n");
+		}
+
+		public boolean isDown() {
+			String attribute = icon().getAttribute("class");
+			return attribute.contains("ui-icon-triangle-1-s");
+		}
+		
+		public void up() {
+			if (!isUp()) {
+				icon().click();
+				webClient.until(new Function<WebDriver, Boolean>() {
+					@Override
+					@Nullable
+					public Boolean apply(WebDriver input) {
+						return isUp();
+					}
+				});
+			}
+		}
+
+		public void down() {
+			if (!isDown()) {
+				icon().click();
+				webClient.until(new Function<WebDriver, Boolean>() {
+					@Override
+					@Nullable
+					public Boolean apply(WebDriver input) {
+						return isDown();
+					}
+				});
+			}
+		}
+	}
+
+	public static class AccountTable extends CustomElement {
+		OrderBy username = new OrderBy("account_username");
+	}
+
+	@Page
+	public static class SearchPage {
+		AccountTable accountTable;
+
+	}
+
+	SearchPage searchPage;
 	LoginPage loginPage;
 
 	@Test
+	public void table() throws InterruptedException {
+		try {
+		webClient.page("/domain/accountSelect.faces");
+		StopWatch stopWatch = new StopWatch();
+		stopWatch.start();
+
+		assertThat(searchPage).isNotNull();
+		assertThat(searchPage.accountTable.username.isUp()).isFalse();
+		assertThat(searchPage.accountTable.username.isDown()).isFalse();
+		searchPage.accountTable.username.up();
+		assertThat(searchPage.accountTable.username.isUp()).isTrue();
+		assertThat(searchPage.accountTable.username.isDown()).isFalse();
+		searchPage.accountTable.username.up();
+		assertThat(searchPage.accountTable.username.isUp()).isTrue();
+		assertThat(searchPage.accountTable.username.isDown()).isFalse();
+		searchPage.accountTable.username.down();
+		assertThat(searchPage.accountTable.username.isDown()).isTrue();
+		assertThat(searchPage.accountTable.username.isUp()).isFalse();
+		
+		stopWatch.stop();
+		System.out.println("----------------------");
+		System.out.println(stopWatch.toString());
+		}catch(Throwable e ) {
+			e.printStackTrace();
+			TimeUnit.SECONDS.sleep(5);
+		}
+	}
+
+	@Test
+	@Ignore
 	public void enums() throws InterruptedException {
 		webClient.page("/login.faces?locale=en");
 		StopWatch stopWatch = new StopWatch();
