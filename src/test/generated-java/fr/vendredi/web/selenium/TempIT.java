@@ -11,8 +11,10 @@ package fr.vendredi.web.selenium;
 import static com.palominolabs.xpath.XPathUtils.getXPathString;
 import static org.fest.assertions.Assertions.assertThat;
 
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.lang.time.StopWatch;
 import org.junit.Before;
 import org.junit.Rule;
@@ -92,23 +94,59 @@ public class TempIT {
 		}
 	}
 
-	public static class Input extends CustomElement {
-		public Input(String id) {
+	public static class StringInput extends Input<String> {
+		public StringInput(String id) {
 			super(id);
 		}
 
 		public void type(String value) {
-			webClient.fill(By.id(id), value);
+			typeString(value);
 		}
 
 		public String value() {
+			return valueAttribute();
+		}
+	}
+
+	public static class IntegerInput extends Input<Integer> {
+		public IntegerInput(String id) {
+			super(id);
+		}
+
+		public void type(Integer value) {
+			typeString(value.toString());
+		}
+
+		public Integer value() {
+			return Integer.valueOf(valueAttribute());
+		}
+
+		public boolean hasValue() {
+			return NumberUtils.isNumber(valueAttribute());
+		}
+	}
+
+	public static abstract class Input<T> extends CustomElement {
+		public Input(String id) {
+			super(id);
+		}
+
+		public abstract void type(T value);
+
+		public abstract T value();
+
+		protected void typeString(String value) {
+			webClient.fill(By.id(id), value);
+		}
+
+		protected String valueAttribute() {
 			return webClient.find(By.id(id)).getAttribute("value");
 		}
 	}
 
 	public static class Login extends CustomElement {
-		Input username = new Input("j_username");
-		Input password = new Input("j_password");
+		StringInput username = new StringInput("j_username");
+		StringInput password = new StringInput("j_password");
 		Button loginButton = new Button("login");
 
 		public void enter() {
@@ -125,6 +163,7 @@ public class TempIT {
 		DateRange dateRange = new DateTimeRange("birthDate");
 		Checkbox enabled = new Checkbox("isEnabled2");
 		ChooseEnum<Civility> chooseEnum = new ChooseEnum<Civility>("civility2");
+		IntegerInput age = new IntegerInput("j_password");
 	}
 
 	@Page
@@ -140,23 +179,21 @@ public class TempIT {
 		webClient.page("/login.faces?locale=en");
 		StopWatch stopWatch = new StopWatch();
 		stopWatch.start();
-		 
-//		loginPage.tests.homeAddress.values();
-//		loginPage.tests.homeAddress.autocomplete("Paris");
-//		loginPage.tests.homeAddress.autocomplete("New-York");
-//		loginPage.tests.homeAddress.values();
-//		loginPage.tests.homeAddress.delete("Paris");
-//		loginPage.tests.homeAddress.delete("New-York");
-//		loginPage.tests.homeAddress.values();
-//		System.out.println(loginPage.tests.chooseEnum.isSelected(Civility.MR));
-//		loginPage.tests.chooseEnum.select(Civility.MR);
-//		System.out.println(loginPage.tests.chooseEnum.isSelected(Civility.MR));
-//		loginPage.tests.chooseEnum.select(Civility.MS);
-//		loginPage.tests.chooseEnum.select(Civility.MR);
-//		System.out.println("Username is " + loginPage.login.username.value());
-//		loginPage.login.username.type("toto");
-//		System.out.println("Username is " + loginPage.login.username.value());
-//		loginPage.tests.chooseBooleans.choose(true);
+
+		loginPage.tests.homeAddress.autocomplete("Par", "Paris");
+		loginPage.tests.homeAddress.autocomplete("New-York");
+		assertThat(loginPage.tests.homeAddress.values()).containsExactly("Paris", "New-York");
+		loginPage.tests.homeAddress.delete("Paris");
+		assertThat(loginPage.tests.homeAddress.values()).containsExactly("New-York");
+		loginPage.tests.homeAddress.delete("New-York");
+		assertThat(loginPage.tests.homeAddress.values()).isEmpty();
+		
+		
+		System.out.println(loginPage.tests.chooseEnum.isSelected(Civility.MR));
+		loginPage.tests.chooseEnum.select(Civility.MR);
+		System.out.println(loginPage.tests.chooseEnum.isSelected(Civility.MR));
+		loginPage.tests.chooseEnum.select(Civility.MS);
+		loginPage.tests.chooseEnum.select(Civility.MR);
 		loginPage.tests.chooseEnums.values();
 		assertThat(loginPage.tests.chooseEnums.isSelected(Civility.MR)).isFalse();
 		loginPage.tests.chooseEnums.choose(Civility.MR);
@@ -167,9 +204,20 @@ public class TempIT {
 		loginPage.tests.chooseEnums.choose(Civility.MS);
 		loginPage.tests.chooseEnums.choose(Civility.MS);
 		loginPage.tests.chooseEnums.values();
-//		loginPage.tests.chooseBooleans.choose(true, false);
-//		loginPage.tests.dateRange.from(new Date());
-//		loginPage.login.enter();
+		
+		loginPage.tests.chooseBooleans.choose(true);
+		loginPage.tests.chooseBooleans.choose(true, false);
+		loginPage.tests.dateRange.from(new Date());
+		
+		
+		loginPage.tests.age.type(12);
+		assertThat(loginPage.tests.age.value()).isEqualTo(12);
+		
+		
+		System.out.println("Username is " + loginPage.login.username.value());
+		loginPage.login.username.type("toto");
+		System.out.println("Username is " + loginPage.login.username.value());
+		loginPage.login.enter();
 		stopWatch.stop();
 		System.out.println("----------------------");
 		System.out.println(stopWatch.toString());
