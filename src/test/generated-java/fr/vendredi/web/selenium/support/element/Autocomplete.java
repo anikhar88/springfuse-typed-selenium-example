@@ -46,9 +46,12 @@ public class Autocomplete extends CustomElement {
 	}
 
 	public void autocomplete(String text, String match) {
-		webClient.fill(byInput, text);
+		webClient.isDisplayed(byInput);
+		WebElement find = webClient.find(byInput);
+		find.clear();
+		find.sendKeys(text);
+
 		String xpath = "//li[@data-item-label=" + XPathUtils.getXPathString(match) + "]";
-		// webClient.find(By.xpath(xpath)).click();
 		webClient.click(By.xpath(xpath));
 	}
 

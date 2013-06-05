@@ -40,7 +40,6 @@ import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import com.google.common.base.Function;
-import com.palominolabs.xpath.XPathUtils;
 
 import fr.vendredi.web.selenium.support.element.WebElementConfiguration;
 
@@ -147,7 +146,6 @@ public class WebClient {
 			browserWait().until(function);
 		} catch (StaleElementReferenceException e) {
 			e.printStackTrace();
-			browserWait().until(function);
 		}
 	}
 
@@ -196,8 +194,10 @@ public class WebClient {
 				try {
 					return from.findElement(by).isDisplayed();
 				} catch (NoSuchElementException e) {
+					e.printStackTrace();
 					return false;
 				} catch (StaleElementReferenceException e) {
+					e.printStackTrace();
 					return false;
 				}
 			}
@@ -241,9 +241,6 @@ public class WebClient {
 	}
 
 	public void notification(String text, String type) {
-		String notification = "growlNotificationBar.renderMessage({detail: '" + javaScriptEscape(text) + "', severity: '" + type + "'});";
-		((JavascriptExecutor) webDriver).executeScript(notification);
-		sleep(waitAfterNotificationMs);
 	}
 
 	public void sleep(long sleepInMs) {
@@ -304,15 +301,6 @@ public class WebClient {
 		webElement.sendKeys(text);
 		webElement.sendKeys(Keys.TAB);
 		sleep(waitAfterFillMs);
-	}
-
-	public void autocomplete(WebElement webElement, String text) {
-		autocomplete(webElement, text, text);
-	}
-
-	public void autocomplete(WebElement webElement, String text, String match) {
-		fill(webElement, text);
-		click(By.xpath("//li[@data-item-label=" + XPathUtils.getXPathString(match) + "]"));
 	}
 
 	public void selectComboValue(WebElement webElement, String value) {

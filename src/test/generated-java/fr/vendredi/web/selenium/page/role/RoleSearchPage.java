@@ -40,7 +40,6 @@ public class RoleSearchPage extends AbstractSearchPage {
     }
 
     public void searchByRolename(String roleName) {
-        webClient.autocomplete(this.roleName, roleName);
         webClient.click(searchButton);
     }
 }

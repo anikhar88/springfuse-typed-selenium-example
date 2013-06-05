@@ -11,9 +11,11 @@ package fr.vendredi.web.selenium;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.palominolabs.xpath.XPathUtils.getXPathString;
 import static org.fest.assertions.Assertions.assertThat;
+import static org.openqa.selenium.By.name;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
@@ -29,6 +31,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
 import com.google.common.base.Function;
+import com.google.common.collect.Lists;
 
 import fr.vendredi.domain.Civility;
 import fr.vendredi.web.selenium.support.Page;
@@ -40,6 +43,7 @@ import fr.vendredi.web.selenium.support.element.DateRange;
 import fr.vendredi.web.selenium.support.element.DateTimeRange;
 import fr.vendredi.web.selenium.support.element.ManyBooleans;
 import fr.vendredi.web.selenium.support.element.ManyEnums;
+import fr.vendredi.web.selenium.support.element.Paginator;
 
 @SuppressWarnings("unused")
 public class TempIT {
@@ -238,12 +242,6 @@ public class TempIT {
 		StringInput username = new StringInput("j_username");
 		StringInput password = new StringInput("j_password");
 		Button loginButton = new Button("login");
-
-		public void enter() {
-			username.type("admin");
-			password.type("admin");
-			loginButton.click();
-		}
 	}
 
 	public static class Tests extends CustomElement {
@@ -277,19 +275,16 @@ public class TempIT {
 		private WebElement icon() {
 			String xpath = "//tr/th[@id=" + getXPathString("form:searchResults:" + id) + "]/span[2]";
 			return webClient.find(By.xpath(xpath));
-
 		}
 
 		public boolean isUp() {
-			String attribute = icon().getAttribute("class");
-			return attribute.contains("ui-icon-triangle-1-n");
+			return icon().getAttribute("class").contains("ui-icon-triangle-1-n");
 		}
 
 		public boolean isDown() {
-			String attribute = icon().getAttribute("class");
-			return attribute.contains("ui-icon-triangle-1-s");
+			return icon().getAttribute("class").contains("ui-icon-triangle-1-s");
 		}
-		
+
 		public void up() {
 			if (!isUp()) {
 				icon().click();
@@ -317,8 +312,86 @@ public class TempIT {
 		}
 	}
 
+	public static class TableAction extends CustomElement {
+		public void edit(String value) {
+			clickTitle("Edit " + value);
+		}
+
+		public void view(String value) {
+			clickTitle("View " + value);
+		}
+
+		public void delete(String value) {
+			clickTitle("Delete " + value);
+			By confirmation = name("form:askForDeleteItemDialogYes");
+			webClient.click(confirmation);
+		}
+
+		public void select(String account) {
+
+		}
+
+		private void clickTitle(String title) {
+			webClient.find(By.xpath("//a[@title=" + getXPathString(title) + "]")).click();
+		}
+	}
+
+	public static class SaveSearch extends CustomElement {
+		public SaveSearch(String id) {
+			super(id);
+		}
+
+		public void save(String name) {
+
+		}
+
+		public void load(String name) {
+
+		}
+
+		public List<String> values() {
+			String xpath = "//span[@id=" + getXPathString(id) + "]/button/span[@class='ui-button-text']";
+			webClient.click(By.xpath(xpath));
+			String popup = "//div[@id=" + getXPathString(id) + "]/ul/li";
+			List<String> ret = Lists.newArrayList();
+			for (WebElement webElement : webClient.findAll(By.xpath(popup))) {
+				ret.add(webElement.getText());
+			}
+			return ret;
+		}
+	}
+
+	public static class SearchAction extends CustomElement {
+		Autocomplete username = new Autocomplete("form:username");
+		SaveSearch saveSearch = new SaveSearch("form:searchFormName");
+
+		public void search() {
+			webClient.click(By.id("form:search"));
+		}
+
+		public void reset() {
+			webClient.click(By.id("form:resetSearch"));
+			try {
+				TimeUnit.MILLISECONDS.sleep(400);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+		public void excel() {
+//			webClient.click(By.id("form:excel"));
+		}
+
+		public void saveSearch() {
+		}
+	}
+
 	public static class AccountTable extends CustomElement {
 		OrderBy username = new OrderBy("account_username");
+		Paginator paginator;
+		TableAction actions;
+		SearchAction searchactions;
 	}
 
 	@Page
@@ -333,27 +406,50 @@ public class TempIT {
 	@Test
 	public void table() throws InterruptedException {
 		try {
-		webClient.page("/domain/accountSelect.faces");
-		StopWatch stopWatch = new StopWatch();
-		stopWatch.start();
+			webClient.page("/login.faces?locale=en");
+			StopWatch stopWatch = new StopWatch();
+			stopWatch.start();
 
-		assertThat(searchPage).isNotNull();
-		assertThat(searchPage.accountTable.username.isUp()).isFalse();
-		assertThat(searchPage.accountTable.username.isDown()).isFalse();
-		searchPage.accountTable.username.up();
-		assertThat(searchPage.accountTable.username.isUp()).isTrue();
-		assertThat(searchPage.accountTable.username.isDown()).isFalse();
-		searchPage.accountTable.username.up();
-		assertThat(searchPage.accountTable.username.isUp()).isTrue();
-		assertThat(searchPage.accountTable.username.isDown()).isFalse();
-		searchPage.accountTable.username.down();
-		assertThat(searchPage.accountTable.username.isDown()).isTrue();
-		assertThat(searchPage.accountTable.username.isUp()).isFalse();
-		
-		stopWatch.stop();
-		System.out.println("----------------------");
-		System.out.println(stopWatch.toString());
-		}catch(Throwable e ) {
+			login();
+
+			webClient.click(By.id("form:selectAccounts"));
+			searchPage.accountTable.searchactions.username.autocomplete("user04");
+			searchPage.accountTable.searchactions.search();
+			assertThat(searchPage.accountTable.paginator.size()).isEqualTo(1);
+			searchPage.accountTable.searchactions.reset();
+			assertThat(searchPage.accountTable.paginator.size()).isEqualTo(53);
+			searchPage.accountTable.searchactions.excel();
+			assertThat(searchPage.accountTable.searchactions.saveSearch.values()).isEmpty();
+			searchPage.accountTable.searchactions.username.autocomplete("admin");
+			searchPage.accountTable.searchactions.saveSearch.save("admin-search");
+			assertThat(searchPage.accountTable.searchactions.saveSearch.values()).hasSize(1).contains("admin-search");
+
+			if (false) {
+				assertThat(searchPage).isNotNull();
+				assertThat(searchPage.accountTable.username.isUp()).isFalse();
+				assertThat(searchPage.accountTable.username.isDown()).isFalse();
+				searchPage.accountTable.username.up();
+				assertThat(searchPage.accountTable.username.isUp()).isTrue();
+				assertThat(searchPage.accountTable.username.isDown()).isFalse();
+				searchPage.accountTable.username.up();
+				assertThat(searchPage.accountTable.username.isUp()).isTrue();
+				assertThat(searchPage.accountTable.username.isDown()).isFalse();
+				searchPage.accountTable.username.down();
+				assertThat(searchPage.accountTable.username.isDown()).isTrue();
+				assertThat(searchPage.accountTable.username.isUp()).isFalse();
+				searchPage.accountTable.username.up();
+
+				searchPage.accountTable.actions.view("admin");
+				webClient.webDriver.navigate().back();
+				searchPage.accountTable.actions.edit("admin");
+				webClient.webDriver.navigate().back();
+				searchPage.accountTable.actions.delete("user04");
+			}
+
+			stopWatch.stop();
+			System.out.println("----------------------");
+			System.out.println(stopWatch.toString());
+		} catch (Throwable e) {
 			e.printStackTrace();
 			TimeUnit.SECONDS.sleep(5);
 		}
@@ -396,10 +492,14 @@ public class TempIT {
 	}
 
 	private void login() {
-		System.out.println("Username is " + loginPage.login.username.value());
+		webClient.page("/login.faces?locale=en");
+		assertThat(loginPage.login.username.value()).isEmpty();
 		loginPage.login.username.type("toto");
-		System.out.println("Username is " + loginPage.login.username.value());
-		loginPage.login.enter();
+		assertThat(loginPage.login.username.value()).isEqualTo("toto");
+		loginPage.login.username.type("admin");
+		loginPage.login.password.type("admin");
+		loginPage.login.loginButton.click();
+		System.out.println("logged in");
 	}
 
 	private void typedInput() {
