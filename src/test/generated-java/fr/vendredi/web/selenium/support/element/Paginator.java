@@ -13,72 +13,58 @@ import static org.fest.assertions.Assertions.assertThat;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.fest.assertions.Assertions;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 
-
 public class Paginator extends CustomElement {
-    private static final String ONE_RESULT = "There is one result";
+	private static final String ONE_RESULT = "There is one result";
 	private static final String NO_RESULT = "There is no result";
 	// paginator
-    @FindBy(css = "div.ui-paginator-bottom span.ui-paginator-pages span.ui-state-active")
-    public WebElement paginatorCurrent;
-    @FindBy(css = "div.ui-paginator-bottom span.ui-icon-seek-next")
-    public WebElement paginatorNextButton;
-    @FindBy(css = "div.ui-paginator-bottom span.ui-icon-seek-prev")
-    public WebElement paginatorPrevButton;
+	@FindBy(css = "div.ui-paginator-bottom span.ui-paginator-pages span.ui-state-active")
+	public WebElement paginatorCurrent;
+	@FindBy(css = "div.ui-paginator-bottom span.ui-icon-seek-next")
+	public WebElement paginatorNextButton;
+	@FindBy(css = "div.ui-paginator-bottom span.ui-icon-seek-prev")
+	public WebElement paginatorPrevButton;
 
-    // sum
-    @FindBy(id = "searchResultsRegion")
-    public WebElement searchResultsRegion;
+	// sum
+	@FindBy(id = "searchResultsRegion")
+	public WebElement searchResultsRegion;
 
-    public void next() {
-        webClient.click(paginatorNextButton);
-    }
+	public void next() {
+		webClient.click(paginatorNextButton);
+	}
 
-    public void previous() {
-        webClient.click(paginatorPrevButton);
-    }
+	public void previous() {
+		webClient.click(paginatorPrevButton);
+	}
 
-    public void isPage(int pageId) {
-        webClient.hasText(paginatorCurrent, String.valueOf(pageId));
-    }
+	public void isPage(int pageId) {
+		webClient.hasText(paginatorCurrent, String.valueOf(pageId));
+	}
 
-    public void hasResult(String value) {
-        webClient.hasText(searchResultsRegion, value);
-    }
-    
-    public int size() {
-    	String r = searchResultsRegion.getText();
-    	if (NO_RESULT.equals(r)) {
-    		return 0;
-    	} else if (ONE_RESULT.equals(r)) {
-    		return 1;
-    	} else {
-    		Pattern pattern = Pattern.compile("There are ([0-9]+) results");
-    		Matcher m = pattern.matcher(r);
-    		if (m.matches()) {
-    			return Integer.parseInt(m.group(1));
-    		}
-    		throw new IllegalStateException(r + " is not a valid result");
-    	}
-    	
-    }
+	public void hasResult(String value) {
+		webClient.hasText(searchResultsRegion, value);
+	}
 
-    public void hasSize(int size) {
-    	assertThat(size()).isEqualTo(size);
-    }
+	public int size() {
+		String r = searchResultsRegion.getText();
+		if (NO_RESULT.equals(r)) {
+			return 0;
+		} else if (ONE_RESULT.equals(r)) {
+			return 1;
+		} else {
+			Pattern pattern = Pattern.compile("There are ([0-9]+) results");
+			Matcher m = pattern.matcher(r);
+			if (m.matches()) {
+				return Integer.parseInt(m.group(1));
+			}
+			throw new IllegalStateException(r + " is not a valid result");
+		}
 
-    private String sizePattern(int size) {
-        switch (size) {
-        case 0:
-            return NO_RESULT;
-        case 1:
-            return ONE_RESULT;
-        default:
-            return "There are " + size + " results";
-        }
-    }
+	}
 
+	public void hasSize(int size) {
+		assertThat(size()).isEqualTo(size);
+	}
 }

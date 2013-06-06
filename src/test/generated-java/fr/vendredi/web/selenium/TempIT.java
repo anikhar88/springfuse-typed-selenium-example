@@ -8,42 +8,38 @@
  */
 package fr.vendredi.web.selenium;
 
-import static com.google.common.collect.Lists.newArrayList;
-import static com.palominolabs.xpath.XPathUtils.getXPathString;
 import static org.fest.assertions.Assertions.assertThat;
-import static org.openqa.selenium.By.name;
 
 import java.util.Date;
-import java.util.List;
-import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
-import javax.annotation.Nullable;
-
-import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.lang.time.StopWatch;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-
-import com.google.common.base.Function;
-import com.google.common.collect.Lists;
 
 import fr.vendredi.domain.Civility;
 import fr.vendredi.web.selenium.support.Page;
 import fr.vendredi.web.selenium.support.WebClient;
 import fr.vendredi.web.selenium.support.WebClientRule;
 import fr.vendredi.web.selenium.support.element.Autocomplete;
+import fr.vendredi.web.selenium.support.element.Button;
+import fr.vendredi.web.selenium.support.element.Checkbox;
+import fr.vendredi.web.selenium.support.element.ChooseEnum;
 import fr.vendredi.web.selenium.support.element.CustomElement;
 import fr.vendredi.web.selenium.support.element.DateRange;
 import fr.vendredi.web.selenium.support.element.DateTimeRange;
+import fr.vendredi.web.selenium.support.element.IntegerInput;
+import fr.vendredi.web.selenium.support.element.ListBox;
 import fr.vendredi.web.selenium.support.element.ManyBooleans;
 import fr.vendredi.web.selenium.support.element.ManyEnums;
+import fr.vendredi.web.selenium.support.element.OrderBy;
 import fr.vendredi.web.selenium.support.element.Paginator;
+import fr.vendredi.web.selenium.support.element.SaveSearch;
+import fr.vendredi.web.selenium.support.element.StringInput;
+import fr.vendredi.web.selenium.support.element.TableAction;
 
 @SuppressWarnings("unused")
 public class TempIT {
@@ -54,188 +50,6 @@ public class TempIT {
 	@Before
 	public void setup() {
 		webClient = webClientRule.getWebClient();
-	}
-
-	public static class Button extends CustomElement {
-		public Button(String id) {
-			super(id);
-		}
-
-		public void click() {
-			webClient.click(By.id(id));
-		}
-	}
-
-	public static class Checkbox extends CustomElement {
-		public Checkbox(String id) {
-			super(id);
-		}
-
-		public void enable() {
-			if (isDisabled()) {
-				webClient.click(By.id(id));
-			}
-		}
-
-		public void disable() {
-			if (isEnabled()) {
-				webClient.click(By.id(id));
-			}
-		}
-
-		public boolean isDisabled() {
-			return !isEnabled();
-		}
-
-		public boolean isEnabled() {
-			return Boolean.valueOf(webClient.find(By.id(id)).getAttribute("checked"));
-		}
-	}
-
-	public static class ChooseEnum<T extends Enum<? extends Enum<?>>> extends CustomElement {
-		public ChooseEnum(String id) {
-			super(id);
-		}
-
-		public void select(T value) {
-			String xpathExpression = "//label[@for=contains(@for, " + getXPathString(id + ":" + value.ordinal()) + ")]";
-			webClient.click(By.xpath(xpathExpression));
-		}
-
-		public boolean isSelected(T value) {
-			String xpathExpression = "//input[@type='radio' and @for=contains(@for, " + getXPathString(id + ":" + value.ordinal()) + ")]";
-			return webClient.find(By.xpath(xpathExpression)).isSelected();
-		}
-	}
-
-	public static class ListBox extends CustomElement {
-		public ListBox(String id) {
-			super(id);
-		}
-
-		private List<WebElement> getOptions() {
-			String xpath = "//select[@id=" + getXPathString(id) + "]/option";
-			return webClient.findAll(By.xpath(xpath));
-
-		}
-
-		public List<String> texts() {
-			List<String> ret = newArrayList();
-			for (WebElement webElement : getOptions()) {
-				ret.add(webElement.getText());
-			}
-			return ret;
-		}
-
-		public List<String> selectedTexts() {
-			List<String> ret = newArrayList();
-			for (WebElement webElement : getOptions()) {
-				if (webElement.isSelected()) {
-					ret.add(webElement.getText());
-				}
-			}
-			return ret;
-		}
-
-		public List<String> selectedValues() {
-			List<String> ret = newArrayList();
-			for (WebElement webElement : getOptions()) {
-				if (webElement.isSelected()) {
-					ret.add(webElement.getAttribute("value"));
-				}
-			}
-			return ret;
-		}
-
-		public List<String> values() {
-			List<String> ret = newArrayList();
-			String xpath = "//select[@id=" + getXPathString(id) + "]/option";
-			for (WebElement webElement : getOptions()) {
-				ret.add(webElement.getAttribute("value"));
-			}
-			return ret;
-		}
-
-		public void text(String... texts) {
-			for (String text : texts) {
-				String xpath = "//select[@id=" + getXPathString(id) + "]/option[contains(text(), " + getXPathString(text) + ")]";
-				webClient.click(By.xpath(xpath));
-			}
-		}
-
-		public void value(String... values) {
-			for (String value : values) {
-				String xpath = "//select[@id=" + getXPathString(id) + "]/option[contains(@value, " + getXPathString(value) + ")]";
-				webClient.click(By.xpath(xpath));
-			}
-		}
-
-		public void selectAll() {
-			for (WebElement webElement : getOptions()) {
-				if (!webElement.isSelected()) {
-					webClient.click(webElement);
-				}
-			}
-		}
-
-		public void unselectAll() {
-			for (WebElement webElement : getOptions()) {
-				if (webElement.isSelected()) {
-					webClient.click(webElement);
-				}
-			}
-		}
-
-	}
-
-	public static class StringInput extends Input<String> {
-		public StringInput(String id) {
-			super(id);
-		}
-
-		public void type(String value) {
-			typeString(value);
-		}
-
-		public String value() {
-			return valueAttribute();
-		}
-	}
-
-	public static class IntegerInput extends Input<Integer> {
-		public IntegerInput(String id) {
-			super(id);
-		}
-
-		public void type(Integer value) {
-			typeString(value.toString());
-		}
-
-		public Integer value() {
-			return Integer.valueOf(valueAttribute());
-		}
-
-		public boolean hasValue() {
-			return NumberUtils.isNumber(valueAttribute());
-		}
-	}
-
-	public static abstract class Input<T> extends CustomElement {
-		public Input(String id) {
-			super(id);
-		}
-
-		public abstract void type(T value);
-
-		public abstract T value();
-
-		protected void typeString(String value) {
-			webClient.fill(By.id(id), value);
-		}
-
-		protected String valueAttribute() {
-			return webClient.find(By.id(id)).getAttribute("value");
-		}
 	}
 
 	public static class Login extends CustomElement {
@@ -267,100 +81,6 @@ public class TempIT {
 		}
 	}
 
-	public static class OrderBy extends CustomElement {
-		public OrderBy(String id) {
-			super(id);
-		}
-
-		private WebElement icon() {
-			String xpath = "//tr/th[@id=" + getXPathString("form:searchResults:" + id) + "]/span[2]";
-			return webClient.find(By.xpath(xpath));
-		}
-
-		public boolean isUp() {
-			return icon().getAttribute("class").contains("ui-icon-triangle-1-n");
-		}
-
-		public boolean isDown() {
-			return icon().getAttribute("class").contains("ui-icon-triangle-1-s");
-		}
-
-		public void up() {
-			if (!isUp()) {
-				icon().click();
-				webClient.until(new Function<WebDriver, Boolean>() {
-					@Override
-					@Nullable
-					public Boolean apply(WebDriver input) {
-						return isUp();
-					}
-				});
-			}
-		}
-
-		public void down() {
-			if (!isDown()) {
-				icon().click();
-				webClient.until(new Function<WebDriver, Boolean>() {
-					@Override
-					@Nullable
-					public Boolean apply(WebDriver input) {
-						return isDown();
-					}
-				});
-			}
-		}
-	}
-
-	public static class TableAction extends CustomElement {
-		public void edit(String value) {
-			clickTitle("Edit " + value);
-		}
-
-		public void view(String value) {
-			clickTitle("View " + value);
-		}
-
-		public void delete(String value) {
-			clickTitle("Delete " + value);
-			By confirmation = name("form:askForDeleteItemDialogYes");
-			webClient.click(confirmation);
-		}
-
-		public void select(String account) {
-
-		}
-
-		private void clickTitle(String title) {
-			webClient.find(By.xpath("//a[@title=" + getXPathString(title) + "]")).click();
-		}
-	}
-
-	public static class SaveSearch extends CustomElement {
-		public SaveSearch(String id) {
-			super(id);
-		}
-
-		public void save(String name) {
-
-		}
-
-		public void load(String name) {
-
-		}
-
-		public List<String> values() {
-			String xpath = "//span[@id=" + getXPathString(id) + "]/button/span[@class='ui-button-text']";
-			webClient.click(By.xpath(xpath));
-			String popup = "//div[@id=" + getXPathString(id) + "]/ul/li";
-			List<String> ret = Lists.newArrayList();
-			for (WebElement webElement : webClient.findAll(By.xpath(popup))) {
-				ret.add(webElement.getText());
-			}
-			return ret;
-		}
-	}
-
 	public static class SearchAction extends CustomElement {
 		Autocomplete username = new Autocomplete("form:username");
 		SaveSearch saveSearch = new SaveSearch("form:searchFormName");
@@ -380,7 +100,7 @@ public class TempIT {
 		}
 
 		public void excel() {
-//			webClient.click(By.id("form:excel"));
+			// webClient.click(By.id("form:excel"));
 		}
 
 		public void saveSearch() {
@@ -397,7 +117,6 @@ public class TempIT {
 	@Page
 	public static class SearchPage {
 		AccountTable accountTable;
-
 	}
 
 	SearchPage searchPage;
@@ -410,9 +129,11 @@ public class TempIT {
 			StopWatch stopWatch = new StopWatch();
 			stopWatch.start();
 
+			webClient.webDriver.manage().deleteAllCookies();
 			login();
 
 			webClient.click(By.id("form:selectAccounts"));
+			searchPage.accountTable.searchactions.reset();
 			searchPage.accountTable.searchactions.username.autocomplete("user04");
 			searchPage.accountTable.searchactions.search();
 			assertThat(searchPage.accountTable.paginator.size()).isEqualTo(1);
@@ -462,6 +183,7 @@ public class TempIT {
 		StopWatch stopWatch = new StopWatch();
 		stopWatch.start();
 		webClient.message("ceci cela");
+		
 		// listBox();
 		// autocomplete();
 		// chooseEnums();
