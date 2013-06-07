@@ -8,14 +8,14 @@
  */
 package fr.vendredi.web.selenium.support.element;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static com.palominolabs.xpath.XPathUtils.getXPathString;
 
+import java.util.Date;
 import java.util.List;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
-
-import com.google.common.collect.Lists;
 
 public class SaveSearch extends CustomElement {
 	public SaveSearch(String id) {
@@ -23,7 +23,9 @@ public class SaveSearch extends CustomElement {
 	}
 
 	public void save(String name) {
-
+		webClient.fill(By.id(id + "_input"), name);
+		webClient.click(By.id("form:saveSearch"));
+		webClient.hasText("Search criteria saved as " + name);
 	}
 
 	public void load(String name) {
@@ -31,10 +33,12 @@ public class SaveSearch extends CustomElement {
 	}
 
 	public List<String> values() {
-		String xpath = "//span[@id=" + getXPathString(id) + "]/button/span[@class='ui-button-text']";
-		webClient.click(By.xpath(xpath));
-		String popup = "//div[@id=" + getXPathString(id) + "]/ul/li";
-		List<String> ret = Lists.newArrayList();
+		System.out.println("click dropdown " + new Date() );
+		webClient.click(By.xpath("//span[@id=" + getXPathString(id) + "]/button/span[@class='ui-button-text']"));
+		webClient.waitUntilDisplayed(By.id(id + "_panel"));
+		System.out.println("--> ok is displayed autocomplete popup " + new Date() );
+		List<String> ret = newArrayList();
+		String popup = "//div[@id=" + getXPathString(id + "_panel") + "]/ul/li";
 		for (WebElement webElement : webClient.findAll(By.xpath(popup))) {
 			ret.add(webElement.getText());
 		}

@@ -54,6 +54,24 @@ public class ListBox extends CustomElement {
 		}
 		return ret;
 	}
+	
+	public String selectedValue() {
+		for (WebElement webElement : getOptions()) {
+			if (webElement.isSelected()) {
+				return webElement.getAttribute("value");
+			}
+		}
+		return null;
+	}
+
+	public String selectedText() {
+		for (WebElement webElement : getOptions()) {
+			if (webElement.isSelected()) {
+				return webElement.getText();
+			}
+		}
+		return null;
+	}
 
 	public void text(String... texts) {
 		for (String text : texts) {

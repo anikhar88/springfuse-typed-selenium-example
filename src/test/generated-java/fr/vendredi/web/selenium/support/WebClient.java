@@ -23,13 +23,12 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.Keys;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriver.Timeouts;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
@@ -38,6 +37,7 @@ import org.openqa.selenium.ie.InternetExplorerDriver;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.springframework.util.StopWatch;
 
 import com.google.common.base.Function;
 
@@ -45,14 +45,15 @@ import fr.vendredi.web.selenium.support.element.WebElementConfiguration;
 
 public class WebClient {
 	public final WebDriver webDriver;
+	Timeouts timeout;
 	public final String baseUrl;
 
 	private long driverWaitBeforeStopInSeconds = 5;
-	private long waitAfterClickInMs = 200;
-	private long waitAfterClearInMs = 200;
-	private long waitAfterStepInMs = 200;
-	private long waitAfterFillMs = 200;
-	private long waitAfterNotificationMs = 200;
+	private long waitAfterClickInMs = 0;
+	private long waitAfterClearInMs = 0;
+	private long waitAfterStepInMs = 0;
+	private long waitAfterFillMs = 0;
+	private long waitAfterNotificationMs = 0;
 	private boolean followVisually;
 
 	public WebClient(WebClientBuilder builder) {
@@ -67,7 +68,18 @@ public class WebClient {
 			waitAfterFillMs = 250;
 			waitAfterNotificationMs = 2000;
 		}
+		timeout = webDriver.manage().timeouts().implicitlyWait(driverWaitBeforeStopInSeconds, TimeUnit.SECONDS);
+		webDriver.manage().window().setSize(new Dimension(1280, 1024));
+
 		new WebElementConfiguration().configure(builder.testInstance, this);
+	}
+
+	public void fast() {
+		webDriver.manage().timeouts().implicitlyWait(0, TimeUnit.SECONDS);
+	}
+
+	public void back() {
+		webDriver.manage().timeouts().implicitlyWait(driverWaitBeforeStopInSeconds, TimeUnit.SECONDS);
 	}
 
 	public void hasTitle(String title) {
@@ -101,56 +113,67 @@ public class WebClient {
 		}
 	}
 
-	public void isDisplayed(By by) {
+	public void waitUntilDisplayed(By by) {
 		try {
 			until(displayed(by));
-		} catch (StaleElementReferenceException e) {
-			throw e;
 		} catch (RuntimeException e) {
 			error("not displayed " + by, e);
 		}
 	}
 
-	public void isRemoved(By by) {
+	public void waitUntilRemoved(By by) {
 		try {
-			until(removed(by));
-		} catch (StaleElementReferenceException e) {
-			throw e;
+			until(removed(by, driverWaitBeforeStopInSeconds));
 		} catch (RuntimeException e) {
 			error("not removed " + by, e);
 		}
 	}
 
-	public void isDisplayed(WebElement webElement) {
+	public void waitUntilDisplayed(WebElement webElement) {
 		try {
 			until(displayed(webElement));
-		} catch (StaleElementReferenceException e) {
-			throw e;
 		} catch (RuntimeException e) {
 			error("element " + webElement.getTagName() + " is not displayed", e);
 		}
 	}
 
-	public void isEnabled(WebElement webElement) {
+	public void waitUntilEnabled(WebElement webElement) {
 		try {
 			until(enabled(webElement));
-		} catch (StaleElementReferenceException e) {
-			throw e;
 		} catch (RuntimeException e) {
 			error("element " + webElement.getTagName() + " is not enabled", e);
 		}
 	}
 
-	public void until(Function<WebDriver, Boolean> function) {
+	public void waitUntilEnabled(By by) {
 		try {
-			browserWait().until(function);
-		} catch (StaleElementReferenceException e) {
-			e.printStackTrace();
+			until(enabled(by));
+		} catch (RuntimeException e) {
+			error("element " + by + " is not enabled", e);
 		}
 	}
 
-	public WebDriverWait browserWait() {
-		return new WebDriverWait(webDriver, driverWaitBeforeStopInSeconds);
+	public void until(Function<WebDriver, Boolean> function) {
+		StopWatch stopWatch = new StopWatch();
+		stopWatch.start();
+		// test now the function
+		if (!function.apply(webDriver)) {
+			System.out.println("fast test failed");
+			// test for 1 second with very rapid tests
+			if (!function.apply(webDriver)) {
+				if (!new WebDriverWait(webDriver, 1).until(function)) {
+					System.out.println("moeyn test failed");
+					// ok it's still not ready, so let's wait
+					new WebDriverWait(webDriver, driverWaitBeforeStopInSeconds).until(function);
+				} else {
+					System.out.println("moyen test succeeded");
+				}
+			}
+		} else {
+			System.out.println("fast test succeeded");
+		}
+		stopWatch.stop();
+		System.out.println(function.getClass().getName() + " took " + stopWatch.getTotalTimeSeconds() + "s");
 	}
 
 	public static ExpectedCondition<Boolean> contains(final String text) {
@@ -171,17 +194,23 @@ public class WebClient {
 		};
 	}
 
-	public static ExpectedCondition<Boolean> removed(final By by) {
+	public static ExpectedCondition<Boolean> removed(final By by, final long driverWaitBeforeStopInSeconds) {
 		return new ExpectedCondition<Boolean>() {
 			@Override
 			public Boolean apply(WebDriver from) {
 				try {
-					List<WebElement> findElements = from.findElements(by);
-					return !findElements.isEmpty();
+					from.manage().timeouts().implicitlyWait(0, TimeUnit.SECONDS);
+					return from.findElements(by).isEmpty();
 				} catch (NoSuchElementException e) {
 					return true;
 				} catch (StaleElementReferenceException e) {
+					e.printStackTrace();
 					return false;
+				} catch (Exception e) {
+					e.printStackTrace();
+					return false;
+				} finally {
+					from.manage().timeouts().implicitlyWait(driverWaitBeforeStopInSeconds, TimeUnit.SECONDS);
 				}
 			}
 		};
@@ -192,7 +221,8 @@ public class WebClient {
 			@Override
 			public Boolean apply(WebDriver from) {
 				try {
-					return from.findElement(by).isDisplayed();
+					WebElement findElement = from.findElement(by);
+					return findElement.isDisplayed();
 				} catch (NoSuchElementException e) {
 					e.printStackTrace();
 					return false;
@@ -209,6 +239,15 @@ public class WebClient {
 			@Override
 			public Boolean apply(WebDriver from) {
 				return webElement.isEnabled();
+			}
+		};
+	}
+
+	public static ExpectedCondition<Boolean> enabled(final By by) {
+		return new ExpectedCondition<Boolean>() {
+			@Override
+			public Boolean apply(WebDriver from) {
+				return from.findElement(by).isEnabled();
 			}
 		};
 	}
@@ -260,12 +299,36 @@ public class WebClient {
 	}
 
 	public void click(By by) {
-		isDisplayed(by);
-		find(by).click();
+		try {
+			waitUntilDisplayed(by);
+			click(find(by));
+		} catch (StaleElementReferenceException e) {
+			System.out.println("Not found " + by.toString());
+			throw e;
+		}
+	}
+
+	public List<WebElement> findAllNow(By by) {
+		fast();
+		try {
+			return findAll(by);
+		} finally {
+			back();
+		}
 	}
 
 	public List<WebElement> findAll(By by) {
-		return webDriver.findElements(by);
+		StopWatch stopWatch = new StopWatch();
+		stopWatch.start();
+		int i = 0;
+		try {
+			List<WebElement> findElements = webDriver.findElements(by);
+			i = findElements.size();
+			return findElements;
+		} finally {
+			stopWatch.stop();
+			System.out.println("found " + i + " results in " + stopWatch.getTotalTimeSeconds() + "s for " + by);
+		}
 	}
 
 	public WebElement find(By by) {
@@ -274,7 +337,7 @@ public class WebClient {
 
 	public void click(WebElement webElement) {
 		message("Clicking");
-		isDisplayed(webElement);
+		waitUntilDisplayed(webElement);
 		webElement.click();
 		sleep(waitAfterClickInMs);
 	}
@@ -295,11 +358,9 @@ public class WebClient {
 	}
 
 	public void fill(WebElement webElement, String text) {
-		message("Sending key " + text);
-		isEnabled(webElement);
+		waitUntilDisplayed(webElement);
 		webElement.clear();
 		webElement.sendKeys(text);
-		webElement.sendKeys(Keys.TAB);
 		sleep(waitAfterFillMs);
 	}
 
@@ -368,8 +429,6 @@ public class WebClient {
 			} else {
 				throw new IllegalArgumentException(driver + " is not a valid web driver");
 			}
-			webDriver.manage().timeouts().implicitlyWait(waitTimeInSeconds, TimeUnit.SECONDS);
-			webDriver.manage().window().setSize(new Dimension(1280, 1024));
 			return this;
 		}
 

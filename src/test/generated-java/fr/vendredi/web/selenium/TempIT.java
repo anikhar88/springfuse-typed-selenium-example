@@ -37,7 +37,7 @@ import fr.vendredi.web.selenium.support.element.ManyBooleans;
 import fr.vendredi.web.selenium.support.element.ManyEnums;
 import fr.vendredi.web.selenium.support.element.OrderBy;
 import fr.vendredi.web.selenium.support.element.Paginator;
-import fr.vendredi.web.selenium.support.element.SaveSearch;
+import fr.vendredi.web.selenium.support.element.SearchAction;
 import fr.vendredi.web.selenium.support.element.StringInput;
 import fr.vendredi.web.selenium.support.element.TableAction;
 
@@ -67,6 +67,8 @@ public class TempIT {
 		ChooseEnum<Civility> chooseEnum = new ChooseEnum<Civility>("civility2");
 		IntegerInput age = new IntegerInput("j_password");
 		ListBox food = new ListBox("food");
+		ListBox ua = new ListBox("ua");
+		ListBox l = new ListBox("ua");
 	}
 
 	@Page
@@ -78,32 +80,6 @@ public class TempIT {
 	public static class Table extends CustomElement {
 		public Table(String id) {
 			super(id);
-		}
-	}
-
-	public static class SearchAction extends CustomElement {
-		Autocomplete username = new Autocomplete("form:username");
-		SaveSearch saveSearch = new SaveSearch("form:searchFormName");
-
-		public void search() {
-			webClient.click(By.id("form:search"));
-		}
-
-		public void reset() {
-			webClient.click(By.id("form:resetSearch"));
-			try {
-				TimeUnit.MILLISECONDS.sleep(400);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-
-		public void excel() {
-			// webClient.click(By.id("form:excel"));
-		}
-
-		public void saveSearch() {
 		}
 	}
 
@@ -123,6 +99,34 @@ public class TempIT {
 	LoginPage loginPage;
 
 	@Test
+	@Ignore
+	public void select() throws InterruptedException {
+		try {
+			webClient.page("/tests.faces?locale=en");
+			StopWatch stopWatch = new StopWatch();
+			stopWatch.start();
+			webClient.webDriver.manage().deleteAllCookies();
+
+			assertThat(loginPage.tests.l.selectedText()).isEmpty();
+			assertThat(loginPage.tests.l.selectedValue()).isEmpty();
+			loginPage.tests.l.text("0200 BESANCON (5 UAs filles)");
+			assertThat(loginPage.tests.l.selectedValue()).isEqualTo("0200");
+			assertThat(loginPage.tests.l.selectedText()).isEqualTo("0200 BESANCON (5 UAs filles)");
+			loginPage.tests.l.value("0277");
+			assertThat(loginPage.tests.l.selectedValue()).isEqualTo("0277");
+			assertThat(loginPage.tests.l.selectedText()).isEqualTo("0277 CHALONS-EN-CHAMPAGNE (5 UAs filles)");
+
+			stopWatch.stop();
+			System.out.println("----------------------");
+			System.out.println(stopWatch.toString());
+		} catch (Throwable e) {
+			e.printStackTrace();
+		}
+		// TimeUnit.SECONDS.sleep(5);
+	}
+
+	@Test
+	@Ignore
 	public void table() throws InterruptedException {
 		try {
 			webClient.page("/login.faces?locale=en");
@@ -140,61 +144,83 @@ public class TempIT {
 			searchPage.accountTable.searchactions.reset();
 			assertThat(searchPage.accountTable.paginator.size()).isEqualTo(53);
 			searchPage.accountTable.searchactions.excel();
-			assertThat(searchPage.accountTable.searchactions.saveSearch.values()).isEmpty();
-			searchPage.accountTable.searchactions.username.autocomplete("admin");
-			searchPage.accountTable.searchactions.saveSearch.save("admin-search");
-			assertThat(searchPage.accountTable.searchactions.saveSearch.values()).hasSize(1).contains("admin-search");
+			// assertThat(searchPage.accountTable.searchactions.saveSearch.values()).isEmpty();
+			// searchPage.accountTable.searchactions.username.autocomplete("admin");
+			// searchPage.accountTable.searchactions.saveSearch.save("admin-search");
+			// assertThat(searchPage.accountTable.searchactions.saveSearch.values()).hasSize(1).contains("admin-search");
 
-			if (false) {
-				assertThat(searchPage).isNotNull();
-				assertThat(searchPage.accountTable.username.isUp()).isFalse();
-				assertThat(searchPage.accountTable.username.isDown()).isFalse();
-				searchPage.accountTable.username.up();
-				assertThat(searchPage.accountTable.username.isUp()).isTrue();
-				assertThat(searchPage.accountTable.username.isDown()).isFalse();
-				searchPage.accountTable.username.up();
-				assertThat(searchPage.accountTable.username.isUp()).isTrue();
-				assertThat(searchPage.accountTable.username.isDown()).isFalse();
-				searchPage.accountTable.username.down();
-				assertThat(searchPage.accountTable.username.isDown()).isTrue();
-				assertThat(searchPage.accountTable.username.isUp()).isFalse();
-				searchPage.accountTable.username.up();
+			assertThat(searchPage.accountTable.username.isUp()).isFalse();
+			assertThat(searchPage.accountTable.username.isDown()).isFalse();
+			searchPage.accountTable.username.up();
+			assertThat(searchPage.accountTable.username.isUp()).isTrue();
+			assertThat(searchPage.accountTable.username.isDown()).isFalse();
+			searchPage.accountTable.username.up();
+			assertThat(searchPage.accountTable.username.isUp()).isTrue();
+			assertThat(searchPage.accountTable.username.isDown()).isFalse();
+			searchPage.accountTable.username.down();
+			assertThat(searchPage.accountTable.username.isDown()).isTrue();
+			assertThat(searchPage.accountTable.username.isUp()).isFalse();
+			searchPage.accountTable.username.up();
 
-				searchPage.accountTable.actions.view("admin");
-				webClient.webDriver.navigate().back();
-				searchPage.accountTable.actions.edit("admin");
-				webClient.webDriver.navigate().back();
-				searchPage.accountTable.actions.delete("user04");
-			}
+			searchPage.accountTable.actions.view("admin");
+			webClient.webDriver.navigate().back();
+			searchPage.accountTable.actions.edit("admin");
+			webClient.webDriver.navigate().back();
+			searchPage.accountTable.actions.delete("user04");
 
 			stopWatch.stop();
 			System.out.println("----------------------");
 			System.out.println(stopWatch.toString());
 		} catch (Throwable e) {
 			e.printStackTrace();
-			TimeUnit.SECONDS.sleep(5);
+			// TimeUnit.SECONDS.sleep(5);
 		}
 	}
 
 	@Test
-	@Ignore
 	public void enums() throws InterruptedException {
-		webClient.page("/login.faces?locale=en");
+		webClient.page("/tests.faces?locale=en");
 		StopWatch stopWatch = new StopWatch();
 		stopWatch.start();
 		webClient.message("ceci cela");
-		
-		// listBox();
-		// autocomplete();
-		// chooseEnums();
-		// chooseBooleans();
-		// dateRange();
-		// typedInput();
-		// login();
+
+		int id = 0;
+
+		System.out.println((++id) + " - " + new Date());
+		loginPage.tests.homeAddress.reset();
+		// if (true) {
+		// return;
+		// }
+		System.out.println((++id) + " - " + new Date());
+		assertThat(loginPage.tests.homeAddress.autocompleteValues("ii")) //
+				.hasSize(2) //
+				.containsExactly("Paris", "San Francisco");
+		System.out.println((++id) + " - " + new Date());
+		loginPage.tests.homeAddress.autocomplete("Par", "Paris");
+		System.out.println((++id) + " - " + new Date());
+		loginPage.tests.homeAddress.autocomplete("New", "New-York");
+		System.out.println((++id) + " - checking paris and newyork " + new Date());
+		assertThat(loginPage.tests.homeAddress.values()).containsExactly("Paris", "New-York");
+		System.out.println((++id) + " - deleting paris " + new Date());
+		loginPage.tests.homeAddress.delete("Paris");
+		System.out.println((++id) + " - checking newyork" + new Date());
+		assertThat(loginPage.tests.homeAddress.values()).containsExactly("New-York");
+		System.out.println((++id) + " - reseting " + new Date());
+		loginPage.tests.homeAddress.reset();
+		System.out.println((++id) + " - " + new Date());
+
+		 autocomplete();
+		 listBox();
+		 chooseEnums();
+		 chooseBooleans();
+		 dateRange();
+		 typedInput();
+		 login();
+
 		stopWatch.stop();
 		System.out.println("----------------------");
 		System.out.println(stopWatch.toString());
-		TimeUnit.SECONDS.sleep(5);
+		// TimeUnit.SECONDS.sleep(5);
 	}
 
 	private void listBox() {
@@ -256,18 +282,37 @@ public class TempIT {
 		loginPage.tests.chooseEnums.values();
 	}
 
-	private void autocomplete() {
-		assertThat(loginPage.tests.homeAddress.autocompleteValues("ii")).hasSize(2).containsExactly("Paris", "San Francisco");
+	private void autocomplete() throws InterruptedException {
+		loginPage.tests.homeAddress.reset();
+		assertThat(loginPage.tests.homeAddress.autocompleteValues("ii")) //
+				.hasSize(2) //
+				.containsExactly("Paris", "San Francisco");
+		assertThat(loginPage.tests.homeAddress.values()).isEmpty();
+		loginPage.tests.homeAddress.autocomplete("Par", "Paris");
+		loginPage.tests.homeAddress.autocomplete("New", "New-York");
+		assertThat(loginPage.tests.homeAddress.values()).containsExactly("Paris", "New-York");
+		loginPage.tests.homeAddress.delete("Paris");
+		assertThat(loginPage.tests.homeAddress.values()).containsExactly("New-York");
+		loginPage.tests.homeAddress.reset();
 		loginPage.tests.homeAddress.autocomplete("Par", "Paris");
 		loginPage.tests.homeAddress.autocomplete("New-York");
-		assertThat(loginPage.tests.homeAddress.values()).containsExactly("Paris", "New-York");
+		loginPage.tests.homeAddress.autocomplete("Par", "Paris");
+		loginPage.tests.homeAddress.autocomplete("New-York");
+		loginPage.tests.homeAddress.autocomplete("New-York");
+		loginPage.tests.homeAddress.autocomplete("New-York");
+		loginPage.tests.homeAddress.autocomplete("New-York");
+		loginPage.tests.homeAddress.autocomplete("New-York");
+		loginPage.tests.homeAddress.autocomplete("Par", "Paris");
+		loginPage.tests.homeAddress.delete("Paris");
+		// loginPage.tests.homeAddress.values();
+		// assertThat(loginPage.tests.homeAddress.values()).containsExactly("Paris", "New-York");
 		loginPage.tests.homeAddress.reset();
-		assertThat(loginPage.tests.homeAddress.values()).isEmpty();
+		// assertThat(loginPage.tests.homeAddress.values()).isEmpty();
 		loginPage.tests.homeAddress.delete("Paris");
 		loginPage.tests.homeAddress.autocomplete("New-York");
-		assertThat(loginPage.tests.homeAddress.values()).containsExactly("New-York");
+		// assertThat(loginPage.tests.homeAddress.values()).containsExactly("New-York");
 		loginPage.tests.homeAddress.delete("New-York");
-		assertThat(loginPage.tests.homeAddress.values()).isEmpty();
+		// assertThat(loginPage.tests.homeAddress.values()).isEmpty();
 	}
 
 }
