@@ -14,7 +14,7 @@ import javax.inject.Singleton;
 import fr.vendredi.domain.Legacy;
 import fr.vendredi.domain.LegacyPk;
 import fr.vendredi.repository.LegacyRepository;
-import fr.vendredi.web.converter.GenericJsfConverter;
+import fr.vendredi.web.converter.support.GenericJsfConverter;
 
 /**
  * JSF converter for {@link Legacy}.

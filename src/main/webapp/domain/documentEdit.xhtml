@@ -19,7 +19,8 @@
 <app:edit bean="#{documentEditForm}" title="#{documentEditForm.title}">
 	<ui:define name="form">
 		<app:autoComplete id="owner" value="#{documentEditForm.owner.selected}" label="document_owner" title="document_owner" required="true" 
-			 controller="#{accountController}" model="#{documentEditForm.owner}" permission="#{accountPermission}" completeMethod="completeFullText" converter="#{accountJsfConverter}">
+			completeMethod="completeFullText" completeOnProperties="username,firstName,lastName"
+			controller="#{accountController}" converter="#{accountJsfConverter}" model="#{documentEditForm.owner}" permission="#{accountPermission}">
 			<app:iconView item="#{documentEditForm.document.owner}" />
 		</app:autoComplete>
 		<app:inputFile id="documentBinary" label="document_documentBinary" object="#{documentEditForm.document}" filename="documentFileName"			fileupload="#{documentController.getDocumentFileUpload(documentEditForm.document)}" action="onDocumentBinaryFileUpload"

@@ -13,7 +13,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import fr.vendredi.domain.Document;
 import fr.vendredi.repository.DocumentRepository;
-import fr.vendredi.web.converter.GenericJsfConverter;
+import fr.vendredi.web.converter.support.GenericJsfConverter;
 
 /**
  * JSF converter for {@link Document}.

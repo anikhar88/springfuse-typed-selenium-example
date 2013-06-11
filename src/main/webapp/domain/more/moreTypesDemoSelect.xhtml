@@ -33,22 +33,22 @@
 			<c:if test="#{not multiCheckboxSelection}">
 				<p:ajax event="rowSelect" listener="#{moreTypesDemoLazyDataModel.onRowSelect}" />
 			</c:if>
-			<p:column id="moreTypesDemo_numberInt" headerText="#{msg.moreTypesDemo_numberInt}" styleClass="numeric" sortBy="#{item.numberInt}">
+			<p:column headerText="#{msg.moreTypesDemo_numberInt}" sortBy="#{item.numberInt}" styleClass="numberInt numeric">
 				<h:outputText value="#{item.numberInt}" />
 			</p:column>
-			<p:column id="moreTypesDemo_numberLong" headerText="#{msg.moreTypesDemo_numberLong}" styleClass="numeric" sortBy="#{item.numberLong}">
+			<p:column headerText="#{msg.moreTypesDemo_numberLong}" sortBy="#{item.numberLong}" styleClass="numberLong numeric">
 				<h:outputText value="#{item.numberLong}" />
 			</p:column>
-			<p:column id="moreTypesDemo_numberDouble" headerText="#{msg.moreTypesDemo_numberDouble}" styleClass="numeric" sortBy="#{item.numberDouble}">
+			<p:column headerText="#{msg.moreTypesDemo_numberDouble}" sortBy="#{item.numberDouble}" styleClass="numberDouble numeric">
 				<h:outputText value="#{item.numberDouble}" />
 			</p:column>
-			<p:column id="moreTypesDemo_numberFloat" headerText="#{msg.moreTypesDemo_numberFloat}" styleClass="numeric" sortBy="#{item.numberFloat}">
+			<p:column headerText="#{msg.moreTypesDemo_numberFloat}" sortBy="#{item.numberFloat}" styleClass="numberFloat numeric">
 				<h:outputText value="#{item.numberFloat}" />
 			</p:column>
-			<p:column id="moreTypesDemo_numberBigInteger" headerText="#{msg.moreTypesDemo_numberBigInteger}" styleClass="numeric" sortBy="#{item.numberBigInteger}">
+			<p:column headerText="#{msg.moreTypesDemo_numberBigInteger}" sortBy="#{item.numberBigInteger}" styleClass="numberBigInteger numeric">
 				<h:outputText value="#{item.numberBigInteger}" />
 			</p:column>
-			<p:column id="moreTypesDemo_numberBigDecimal" headerText="#{msg.moreTypesDemo_numberBigDecimal}" styleClass="numeric" sortBy="#{item.numberBigDecimal}">
+			<p:column headerText="#{msg.moreTypesDemo_numberBigDecimal}" sortBy="#{item.numberBigDecimal}" styleClass="numberBigDecimal numeric">
 				<h:outputText value="#{item.numberBigDecimal}" />
 			</p:column>
 			<p:column headerText="#{msg.actions}" styleClass="actions-column" resizable="false">

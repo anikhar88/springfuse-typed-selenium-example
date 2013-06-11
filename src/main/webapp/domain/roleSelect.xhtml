@@ -25,7 +25,7 @@
 			<c:if test="#{not multiCheckboxSelection}">
 				<p:ajax event="rowSelect" listener="#{roleLazyDataModel.onRowSelect}" />
 			</c:if>
-			<p:column id="role_roleName" headerText="#{msg.role_roleName}" sortBy="#{item.roleName}">
+			<p:column headerText="#{msg.role_roleName}" sortBy="#{item.roleName}" styleClass="roleName">
 				<h:outputText value="#{item.roleName}" />
 			</p:column>
 			<p:column headerText="#{msg.actions}" styleClass="actions-column" resizable="false">

@@ -33,6 +33,7 @@ import fr.vendredi.web.util.TabBean;
  * View Helper/Controller to edit {@link Account}.
  */
 @Named
+@ConversationContextScoped
 public class AccountEditForm extends GenericEditForm<Account, String> {
     @Inject
     protected AccountController accountController;

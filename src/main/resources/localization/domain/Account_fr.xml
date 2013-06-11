@@ -35,10 +35,6 @@
 	<entry key="account_lastModificationAuthor">Last Modification Author</entry>
 	<entry key="account_version">Version</entry>
 
-	<!-- enums values -->
-	<entry key="Civility_MR">Mister</entry>
-	<entry key="Civility_MS">Miss</entry>
-
 	<!-- x-to-one -->
 	<entry key="account_homeAddress">Home Address</entry>
 

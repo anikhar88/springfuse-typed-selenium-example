@@ -20,7 +20,8 @@
 		<ui:define name="filters">
 			<app:input id="fullTextQuery" value="#{bookSearchForm.term}" label="search_full_text" />
 			<app:multiAutoComplete id="ownerSelector" value="#{bookSearchForm.ownerSelector.selected}" label="book_owner" 
-				controller="#{accountController}" completeMethod="completeFullText" converter="#{accountJsfConverter}" />
+				completeMethod="completeFullText" completeOnProperties="username,firstName,lastName"
+				controller="#{accountController}" converter="#{accountJsfConverter}" permission="#{accountPermission}"/>
 			<app:inputMultiAutoComplete id="bookTitle" value="#{bookSearchForm.bookTitleSelector}" label="book_bookTitle" completeMethod="completePropertyFullText" property="bookTitle" />
 			<app:rangeInt id="numberOfPages" value="#{bookSearchForm.numberOfPagesRange}" label="book_numberOfPages"/>
 		</ui:define>
@@ -28,13 +29,13 @@
 			<c:if test="#{not multiCheckboxSelection}">
 				<p:ajax event="rowSelect" listener="#{bookLazyDataModel.onRowSelect}" />
 			</c:if>
-			<p:column id="book_owner" headerText="#{msg.book_owner}" sortBy="#{item.owner.username}">
+			<p:column headerText="#{msg.book_owner}" sortBy="#{item.owner.username}" styleClass="owner">
 				<h:outputText value="#{printer.print(item.owner)}" />
 			</p:column>
-			<p:column id="book_bookTitle" headerText="#{msg.book_bookTitle}" sortBy="#{item.bookTitle}">
+			<p:column headerText="#{msg.book_bookTitle}" sortBy="#{item.bookTitle}" styleClass="bookTitle">
 				<h:outputText value="#{item.bookTitle}" />
 			</p:column>
-			<p:column id="book_numberOfPages" headerText="#{msg.book_numberOfPages}" styleClass="numeric" sortBy="#{item.numberOfPages}">
+			<p:column headerText="#{msg.book_numberOfPages}" sortBy="#{item.numberOfPages}" styleClass="numberOfPages numeric">
 				<h:outputText value="#{item.numberOfPages}" />
 			</p:column>
 			<p:column headerText="#{msg.actions}" styleClass="actions-column" resizable="false">

@@ -29,24 +29,26 @@
 			<app:rangeDateTime id="birthDate" value="#{accountSearchForm.birthDateRange}" label="account_birthDate" />
 			<app:inputMultiAutoComplete id="description" value="#{accountSearchForm.descriptionSelector}" label="account_description" completeMethod="completeProperty" property="description" />
 			<app:multiAutoComplete id="homeAddressSelector" value="#{accountSearchForm.homeAddressSelector.selected}" label="account_homeAddress" 
-				controller="#{addressController}" completeMethod="completeFullText" converter="#{addressJsfConverter}" />
+				completeMethod="completeFullText" completeOnProperties="city"
+				controller="#{addressController}" converter="#{addressJsfConverter}" permission="#{addressPermission}"/>
 			<app:multiAutoComplete id="securityRolesSelector" value="#{accountSearchForm.account.securityRoles}" label="account_securityRoles" 
-				controller="#{roleController}" completeMethod="completeFullText" converter="#{roleJsfConverter}" />
+				completeMethod="completeFullText" completeOnProperties="roleName"
+				controller="#{roleController}" converter="#{roleJsfConverter}" permission="#{rolePermission}"/>
 		</ui:define>
 		<ui:define name="result">
 			<c:if test="#{not multiCheckboxSelection}">
 				<p:ajax event="rowSelect" listener="#{accountLazyDataModel.onRowSelect}" />
 			</c:if>
-			<p:column id="account_username" headerText="#{msg.account_username}" sortBy="#{item.username}">
+			<p:column headerText="#{msg.account_username}" sortBy="#{item.username}" styleClass="username">
 				<h:outputText value="#{item.username}" />
 			</p:column>
-			<p:column id="account_email" headerText="#{msg.account_email}" sortBy="#{item.email}">
+			<p:column headerText="#{msg.account_email}" sortBy="#{item.email}" styleClass="email">
 				<h:outputText value="#{item.email}" />
 			</p:column>
-			<p:column id="account_isEnabled" headerText="#{msg.account_isEnabled}" sortBy="#{item.isEnabled}">
+			<p:column headerText="#{msg.account_isEnabled}" sortBy="#{item.isEnabled}" styleClass="isEnabled">
 				<appcc:outputBoolean value="#{item.isEnabled}" />
 			</p:column>
-			<p:column id="account_homeAddress" headerText="#{msg.account_homeAddress}" sortBy="#{item.homeAddress.city}">
+			<p:column headerText="#{msg.account_homeAddress}" sortBy="#{item.homeAddress.city}" styleClass="homeAddress">
 				<h:outputText value="#{printer.print(item.homeAddress)}" />
 			</p:column>
 			<p:column headerText="#{msg.actions}" styleClass="actions-column" resizable="false">

@@ -13,7 +13,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import fr.vendredi.domain.more.MoreTypesDemo;
 import fr.vendredi.repository.more.MoreTypesDemoRepository;
-import fr.vendredi.web.converter.GenericJsfConverter;
+import fr.vendredi.web.converter.support.GenericJsfConverter;
 
 /**
  * JSF converter for {@link MoreTypesDemo}.

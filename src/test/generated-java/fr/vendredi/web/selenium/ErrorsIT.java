@@ -12,7 +12,7 @@ import org.junit.Test;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 
-import fr.vendredi.web.selenium.page.role.RoleSearchPage;
+import fr.vendredi.web.selenium.page.role.RoleSearch;
 
 import fr.vendredi.web.selenium.support.SeleniumTest;
 import fr.vendredi.web.selenium.page.HomePage;
@@ -28,15 +28,15 @@ public class ErrorsIT extends SeleniumTest {
         loginPage.hasMessage("Invalid credentials");
     }
 
-    RoleSearchPage roleSearchPage;
+    RoleSearch roleSearch;
 
     @Test
     public void dataIntegrityError() {
         englishHomePage();
         loginAsAnAdmin();
         loggedHomePage.roles();
-        roleSearchPage.delete("ROLE_ADMIN");
-        roleSearchPage.hasMessage("Action refused because it violates data integrity");
+        roleSearch.table.delete("ROLE_ADMIN");
+        roleSearch.messages.hasMessage("Action refused because it violates data integrity");
     }
 
     @Page

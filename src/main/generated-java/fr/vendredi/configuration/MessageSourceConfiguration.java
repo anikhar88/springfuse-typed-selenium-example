@@ -48,6 +48,7 @@ public class MessageSourceConfiguration {
                 "classpath:/localization/domain/MoreTypesDemo", //
                 "classpath:/localization/domain/Role", //
                 "classpath:/localization/domain/SavedSearch", //
+                "classpath:/localization/domain/Civility", //
                 // default bean validation messages 
                 "classpath:org/hibernate/validator/ValidationMessages" //
         );

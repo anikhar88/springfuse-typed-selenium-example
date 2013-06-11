@@ -13,7 +13,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import fr.vendredi.domain.Book;
 import fr.vendredi.repository.BookRepository;
-import fr.vendredi.web.converter.GenericJsfConverter;
+import fr.vendredi.web.converter.support.GenericJsfConverter;
 
 /**
  * JSF converter for {@link Book}.

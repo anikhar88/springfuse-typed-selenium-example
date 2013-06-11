@@ -20,16 +20,17 @@
 		<ui:define name="filters">
 			<app:input id="fullTextQuery" value="#{documentSearchForm.term}" label="search_full_text" />
 			<app:multiAutoComplete id="ownerSelector" value="#{documentSearchForm.ownerSelector.selected}" label="document_owner" 
-				controller="#{accountController}" completeMethod="completeFullText" converter="#{accountJsfConverter}" />
+				completeMethod="completeFullText" completeOnProperties="username,firstName,lastName"
+				controller="#{accountController}" converter="#{accountJsfConverter}" permission="#{accountPermission}"/>
 		</ui:define>
 		<ui:define name="result">
 			<c:if test="#{not multiCheckboxSelection}">
 				<p:ajax event="rowSelect" listener="#{documentLazyDataModel.onRowSelect}" />
 			</c:if>
-			<p:column id="document_owner" headerText="#{msg.document_owner}" sortBy="#{item.owner.username}">
+			<p:column headerText="#{msg.document_owner}" sortBy="#{item.owner.username}" styleClass="owner">
 				<h:outputText value="#{printer.print(item.owner)}" />
 			</p:column>
-			<p:column id="document_documentBinary" headerText="#{msg.document_documentBinary}" sortBy="#{item.documentBinary}">
+			<p:column headerText="#{msg.document_documentBinary}" sortBy="#{item.documentBinary}" styleClass="documentBinary">
 				<app:outputFile filename="#{item.documentFileName}" stream="#{documentFileDownload.getDocumentBinaryStream(item)}"/>
 			</p:column>
 			<p:column headerText="#{msg.actions}" styleClass="actions-column" resizable="false">

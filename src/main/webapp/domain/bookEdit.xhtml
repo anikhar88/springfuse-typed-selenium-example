@@ -19,7 +19,8 @@
 <app:edit bean="#{bookEditForm}" title="#{bookEditForm.title}">
 	<ui:define name="form">
 		<app:autoComplete id="owner" value="#{bookEditForm.owner.selected}" label="book_owner" title="book_owner" required="false" 
-			 controller="#{accountController}" model="#{bookEditForm.owner}" permission="#{accountPermission}" completeMethod="completeFullText" converter="#{accountJsfConverter}">
+			completeMethod="completeFullText" completeOnProperties="username,firstName,lastName"
+			controller="#{accountController}" converter="#{accountJsfConverter}" model="#{bookEditForm.owner}" permission="#{accountPermission}">
 			<app:iconView item="#{bookEditForm.book.owner}" />
 		</app:autoComplete>
 		<app:input id="bookTitle" value="#{bookEditForm.book.bookTitle}" size="100" label="book_bookTitle" required="true" />

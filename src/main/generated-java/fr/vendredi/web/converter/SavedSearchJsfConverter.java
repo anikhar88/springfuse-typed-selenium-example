@@ -13,7 +13,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import fr.vendredi.domain.SavedSearch;
 import fr.vendredi.repository.SavedSearchRepository;
-import fr.vendredi.web.converter.GenericJsfConverter;
+import fr.vendredi.web.converter.support.GenericJsfConverter;
 
 /**
  * JSF converter for {@link SavedSearch}.

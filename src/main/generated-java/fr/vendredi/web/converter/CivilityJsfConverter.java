@@ -18,7 +18,8 @@ import javax.inject.Singleton;
 import fr.vendredi.domain.Civility;
 
 /**
- * Responsible for creating Civility JSF converters required for multiple select! (support null)
+ * JSF converters for {@link Civility}.
+ * It is used for multiple select. It supports null value.
  */
 @Named
 @Singleton

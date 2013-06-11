@@ -21,6 +21,7 @@ import fr.vendredi.web.faces.ConversationContextScoped;
  * Provide PrimeFaces {@link LazyDataModel} for {@link Account}
  */
 @Named
+@ConversationContextScoped
 public class AccountLazyDataModel extends GenericLazyDataModel<Account, String, AccountSearchForm> {
     private static final long serialVersionUID = 1L;
 

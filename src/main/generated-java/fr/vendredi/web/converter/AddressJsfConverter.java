@@ -13,7 +13,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import fr.vendredi.domain.Address;
 import fr.vendredi.repository.AddressRepository;
-import fr.vendredi.web.converter.GenericJsfConverter;
+import fr.vendredi.web.converter.support.GenericJsfConverter;
 
 /**
  * JSF converter for {@link Address}.

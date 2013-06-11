@@ -27,6 +27,7 @@ import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 
 import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
 
 import fr.vendredi.dao.support.JpaUniqueUtil;
@@ -147,11 +148,16 @@ public abstract class GenericController<E extends Identifiable<PK>, PK extends S
     }
 
     public List<E> completeFullText(String value) {
-        return repository.find(completeFullTextSearchParameters(value));
+        String completeProperties = parameter("completeOnProperties", String.class);
+        if (StringUtils.isNotBlank(completeProperties)) {
+            return repository.find(searchParameters().termOnAny(value, completeProperties.split(",")));
+        } else {
+            return repository.find(completeFullTextSearchParameters(value));
+        }
     }
 
     /**
-     * A simple auto-complete that returns exactly the input. It is used in search forms with PropertySelector. 
+     * A simple auto-complete that returns exactly the input. It is used in search forms with {@link PropertySelector}.
      */
     public List<String> completeSame(String value) {
         return newArrayList(value);

@@ -27,7 +27,7 @@
 
 		<intercept-url pattern="/home.faces" access="permitAll()" />
 		<intercept-url pattern="/logout*" access="isAuthenticated()" />
-		<intercept-url pattern="/domain/**/*" access="permitAll()" />
+		<intercept-url pattern="/domain/**/*" access="hasRole('ROLE_ADMIN')" />
 		<intercept-url pattern="/monitoring**" access="hasRole('ROLE_MONITORING')" />
 
 		<access-denied-handler error-page="/error/accessdenied.faces" />

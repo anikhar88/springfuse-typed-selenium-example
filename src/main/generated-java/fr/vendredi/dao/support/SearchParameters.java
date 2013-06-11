@@ -8,6 +8,8 @@
  */
 package fr.vendredi.dao.support;
 
+import static org.apache.commons.lang.StringUtils.trim;
+
 import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -340,7 +342,7 @@ public class SearchParameters implements Serializable {
             return this;
         }
         for (String prop : props) {
-            termsMap.put(term, prop);
+            termsMap.put(term, trim(prop));
         }
         return this;
     }

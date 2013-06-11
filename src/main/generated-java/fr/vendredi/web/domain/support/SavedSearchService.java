@@ -62,6 +62,7 @@ public class SavedSearchService {
         SavedSearch savedSearch = savedSearchRepository.findUniqueOrNone(example(searchFrom));
         if (savedSearch == null) {
             savedSearch = example(searchFrom);
+            savedSearch.setName(searchFrom.getSearchFormName());
             savedSearch.setAccount(accountRepository.get(savedSearch.getAccount()));
         }
 
@@ -71,14 +72,15 @@ public class SavedSearchService {
     }
 
     protected <F extends GenericSearchForm, T> F load(F searchFrom) {
-        SavedSearch savedSearch = savedSearchRepository.findUnique(example(searchFrom));
+        SavedSearch example = example(searchFrom);
+        example.setName(searchFrom.getSearchFormName());
+        SavedSearch savedSearch = savedSearchRepository.findUnique(example);
         messageUtil.info("saved_search_loaded", savedSearch.getName());
         return fromByteArray(savedSearch.getFormContent());
     }
 
     private SavedSearch example(GenericSearchForm searchFrom) {
         SavedSearch savedSearch = new SavedSearch();
-        savedSearch.setName(searchFrom.getSearchFormName());
         savedSearch.setFormClassname(searchFrom.getClass().getSimpleName());
         Account currentAccount = new Account();
         currentAccount.setId(String.valueOf(UserContext.getId()));

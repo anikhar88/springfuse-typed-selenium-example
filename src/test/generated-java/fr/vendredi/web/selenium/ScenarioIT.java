@@ -9,27 +9,28 @@
 package fr.vendredi.web.selenium;
 
 import org.junit.Test;
+import org.openqa.selenium.By;
 
-import fr.vendredi.web.selenium.page.account.AccountEditPage;
-import fr.vendredi.web.selenium.page.account.AccountSearchPage;
-import fr.vendredi.web.selenium.page.document.DocumentEditPage;
-import fr.vendredi.web.selenium.page.document.DocumentSearchPage;
-import fr.vendredi.web.selenium.page.role.RoleSearchPage;
-import fr.vendredi.web.selenium.page.role.RoleEditPage;
+import fr.vendredi.web.selenium.page.account.AccountEdit;
+import fr.vendredi.web.selenium.page.account.AccountSearch;
+import fr.vendredi.web.selenium.page.document.DocumentEdit;
+import fr.vendredi.web.selenium.page.document.DocumentSearch;
+import fr.vendredi.web.selenium.page.role.RoleEdit;
+import fr.vendredi.web.selenium.page.role.RoleSearch;
 import fr.vendredi.web.selenium.support.SeleniumTest;
 
 public class ScenarioIT extends SeleniumTest {
     // account
-    AccountSearchPage accountSearchPage;
-    AccountEditPage accountEditPage;
+    AccountSearch accountSearch;
+    AccountEdit accountEdit;
 
     // document
-    DocumentSearchPage documentSearchPage;
-    DocumentEditPage documentEditPage;
+    DocumentSearch documentSearch;
+    DocumentEdit documentEdit;
 
     // role
-    RoleSearchPage roleSearchPage;
-    RoleEditPage roleEditPage;
+    RoleSearch roleSearch;
+    RoleEdit roleEdit;
 
     @Test
     public void asAnAdminICanUpdateAUserAndLogInWithThisUpdatedUser() {
@@ -47,55 +48,59 @@ public class ScenarioIT extends SeleniumTest {
 
     private void searchAndEditAccount(String userName) {
         selectAccount(userName);
-        updateAccount("cnorris", "kickass", "gmail@chucknorris.com");
+        updateAccount("cnorris", "kickass", "gmail@chucknorris.com", "Paris");
         addRoleAdminToAccount();
         createRoleGodToAccount();
         addDocumentToAccount();
         saveToDatabase("cnorris");
     }
 
-    private void updateAccount(String userName, String password, String email) {
-        accountEditPage.hasText("Username");
-        accountEditPage.update(userName, password, email);
+    private void updateAccount(String userName, String password, String email, String homeAddress) {
+        accountEdit.form.username.type(userName);
+        accountEdit.form.password.type(password);
+        accountEdit.form.homeAddress.type(homeAddress);
+        accountEdit.form.email.type(email);
     }
 
     private void selectAccount(String userName) {
         webClient.step("Search by username, select the user, and update its value");
-        accountSearchPage.searchByUsername(userName);
-        accountSearchPage.hasText(userName + "@example.com");
-        accountSearchPage.edit(userName);
+        accountSearch.form.username.type(userName);
+        accountSearch.form.search();
+        accountSearch.table.hasText(userName + "@example.com");
+        accountSearch.table.edit(userName);
     }
 
     private void addRoleAdminToAccount() {
         webClient.step("Add a ROLE_ADMIN to the selected user");
-        accountEditPage.securityRoles.select();
-        accountEditPage.securityRoles.search();
-        roleSearchPage.searchByRolename("ADMIN");
-        roleSearchPage.paginator.hasSize(1);
-        roleSearchPage.select("ROLE_ADMIN");
-        accountEditPage.hasMessage("ROLE_ADMIN: Selected existing and added it, but not saved in database");
+        accountEdit.tabs.securityRoles.open();
+        accountEdit.tabs.securityRoles.search();
+        roleSearch.form.roleName.type("ADMIN");
+        roleSearch.form.search();
+        roleSearch.table.hasSize(1);
+        roleSearch.table.select("ROLE_ADMIN");
+        accountEdit.messages.hasMessage("ROLE_ADMIN: Selected existing and added it, but not saved in database");
     }
 
     private void createRoleGodToAccount() {
         webClient.step("Create a ROLE_GOD for the the selected user");
-        accountEditPage.securityRoles.add();
-        webClient.fill(roleEditPage.roleName, "ROLE_GOD");
-        accountEditPage.ok();
-        accountEditPage.hasMessage("ROLE_GOD: Created and added, but not saved in database");
+        accountEdit.tabs.securityRoles.add();
+        roleEdit.form.roleName.type("ROLE_GOD");
+        accountEdit.action.ok();
+        accountEdit.messages.hasMessage("ROLE_GOD: Created and added, but not saved in database");
     }
 
     private void addDocumentToAccount() {
         webClient.step("Add a document");
-        accountEditPage.edocs.select();
-        accountEditPage.edocs.add();
-        documentEditPage.documentBinary.upload("./src/test/resources/for_upload.txt");
-        documentEditPage.ok();
+        accountEdit.tabs.edocs.open();
+        accountEdit.tabs.edocs.add();
+        documentEdit.form.documentBinary.upload("./src/test/resources/for_upload.txt");
+        documentEdit.action.ok();
     }
 
     private void saveToDatabase(String userName) {
         webClient.step("Save to database");
-        accountEditPage.save();
-        accountSearchPage.hasMessage("Saved " + userName + " successfully in database");
+        accountEdit.action.save();
+        accountSearch.messages.hasMessage("Saved " + userName + " successfully in database");
     }
 
     private void loginAsPreviouslyModifiedUser() {
@@ -108,24 +113,25 @@ public class ScenarioIT extends SeleniumTest {
     private void revertChangesDoneToUser(String userName) {
         webClient.step("Select account and revert previous changes");
         loggedHomePage.accounts();
-        accountSearchPage.searchByUsername("cnorris");
-        accountSearchPage.hasText("gmail@chucknorris.com");
-        accountSearchPage.edit("cnorris");
-        accountSearchPage.hasText("Username");
-        accountEditPage.update(userName, userName, userName + "@example.com");
-        accountEditPage.edocs.select();
-        accountEditPage.edocs.remove("for_upload.txt");
-        accountEditPage.hasMessage("for_upload.txt: Removed, but not saved in database");
-        accountEditPage.securityRoles.select();
-        accountEditPage.securityRoles.remove("ROLE_ADMIN");
-        accountEditPage.hasMessage("ROLE_ADMIN: Removed, but not saved in database");
-        accountEditPage.securityRoles.remove("ROLE_GOD");
-        accountEditPage.hasMessage("ROLE_GOD: Removed, but not saved in database");
-        accountEditPage.save();
-        accountSearchPage.hasMessage("Saved " + userName + " successfully in database");
+        accountSearch.form.username.type("cnorris");
+        accountSearch.form.search();
+        accountSearch.table.hasText("gmail@chucknorris.com");
+        accountSearch.table.edit("cnorris");
+        accountSearch.table.hasText("Username");
+        updateAccount(userName, userName, userName + "@example.com", "Tokyo");
+        accountEdit.tabs.edocs.open();
+        accountEdit.tabs.edocs.remove("for_upload.txt");
+        accountEdit.messages.hasMessage("for_upload.txt: Removed, but not saved in database");
+        accountEdit.tabs.securityRoles.open();
+        accountEdit.tabs.securityRoles.remove("ROLE_ADMIN");
+        accountEdit.messages.hasMessage("ROLE_ADMIN: Removed, but not saved in database");
+        accountEdit.tabs.securityRoles.remove("ROLE_GOD");
+        accountEdit.messages.hasMessage("ROLE_GOD: Removed, but not saved in database");
+        accountEdit.action.save();
+        accountSearch.messages.hasMessage("Saved " + userName + " successfully in database");
         loggedHomePage.home();
         loggedHomePage.roles();
-        roleSearchPage.delete("ROLE_GOD");
-        roleSearchPage.hasMessage("Suppressed ROLE_GOD successfully from database");
+        roleSearch.table.delete("ROLE_GOD");
+        roleSearch.messages.hasMessage("Suppressed ROLE_GOD successfully from database");
     }
 }

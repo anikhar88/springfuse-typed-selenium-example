@@ -26,10 +26,10 @@
 			<c:if test="#{not multiCheckboxSelection}">
 				<p:ajax event="rowSelect" listener="#{addressLazyDataModel.onRowSelect}" />
 			</c:if>
-			<p:column id="address_streetName" headerText="#{msg.address_streetName}" sortBy="#{item.streetName}">
+			<p:column headerText="#{msg.address_streetName}" sortBy="#{item.streetName}" styleClass="streetName">
 				<h:outputText value="#{item.streetName}" />
 			</p:column>
-			<p:column id="address_city" headerText="#{msg.address_city}" sortBy="#{item.city}">
+			<p:column headerText="#{msg.address_city}" sortBy="#{item.city}" styleClass="city">
 				<h:outputText value="#{item.city}" />
 			</p:column>
 			<p:column headerText="#{msg.actions}" styleClass="actions-column" resizable="false">

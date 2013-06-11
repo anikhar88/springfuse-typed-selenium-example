@@ -119,10 +119,6 @@
 		<source>input/inputTextArea.xhtml</source>
 	</tag>
 	<tag>
-		<tag-name>inputSpinner</tag-name>
-		<source>input/inputSpinner.xhtml</source>
-	</tag>
-	<tag>
 		<tag-name>inputBoolean</tag-name>
 		<source>input/inputBoolean.xhtml</source>
 	</tag>

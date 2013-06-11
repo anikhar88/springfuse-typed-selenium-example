@@ -8,15 +8,16 @@
  */
 package fr.vendredi.web.faces;
 
-import static fr.vendredi.web.conversation.ConversationHolder.getCurrentConversation;
-
 import java.util.Iterator;
 
 import javax.faces.context.ExceptionHandler;
 import javax.faces.context.ExceptionHandlerWrapper;
 import javax.faces.event.ExceptionQueuedEvent;
 
-import javax.persistence.PersistenceException;
+import javax.persistence.OptimisticLockException;
+
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.access.AccessDeniedException;
 
 import fr.vendredi.web.util.ExceptionUtil;
 import fr.vendredi.web.util.MessageUtil;
@@ -41,16 +42,24 @@ public class CustomExceptionHandler extends ExceptionHandlerWrapper {
         Iterator<ExceptionQueuedEvent> unhandledExceptionQueuedEvents = getUnhandledExceptionQueuedEvents().iterator();
 
         if (unhandledExceptionQueuedEvents.hasNext()) {
-            try {
-                Throwable exception = unhandledExceptionQueuedEvents.next().getContext().getException();
-                MessageUtil.getInstance().error(exception);
-                if (getCurrentConversation() != null && ExceptionUtil.isCausedBy(exception, PersistenceException.class)) {
-                    // TODO: how do we treat PERSISTENCE EXCEPTION?
-                }
-            } finally {
+            Throwable e = unhandledExceptionQueuedEvents.next().getContext().getException();
+
+            // map general purpose exception to error message
+            if (ExceptionUtil.isCausedBy(e, OptimisticLockException.class)) {
+                MessageUtil.getInstance().error("error_concurrent_modification");
+                unhandledExceptionQueuedEvents.remove();
+            } else if (ExceptionUtil.isCausedBy(e, DataIntegrityViolationException.class)) {
+                MessageUtil.getInstance().error("error_data_integrity_violation");
+                unhandledExceptionQueuedEvents.remove();
+            } else if (ExceptionUtil.isCausedBy(e, AccessDeniedException.class)) {
+                // works only if the spring security filter is before the exception filter, 
+                // that is if the exception filter handles the exception first.
+                MessageUtil.getInstance().error("error_access_denied");
                 unhandledExceptionQueuedEvents.remove();
             }
+            // exception will be handled by the wrapped exception handler.
         }
+
         wrapped.handle();
     }
 

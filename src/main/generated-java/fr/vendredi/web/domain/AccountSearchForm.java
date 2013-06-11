@@ -28,6 +28,7 @@ import fr.vendredi.web.faces.ConversationContextScoped;
  * It exposes a {@link Account} instance so it can be used in search by Example query.
  */
 @Named
+@ConversationContextScoped
 public class AccountSearchForm extends GenericSearchForm<Account, String, AccountSearchForm> {
     private static final long serialVersionUID = 1L;
 

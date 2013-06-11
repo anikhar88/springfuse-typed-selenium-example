@@ -25,8 +25,8 @@ import javax.faces.convert.DateTimeConverter;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
-import fr.vendredi.web.converter.LocalDateConverter;
-import fr.vendredi.web.converter.LocalDateTimeConverter;
+import fr.vendredi.web.converter.support.LocalDateConverter;
+import fr.vendredi.web.converter.support.LocalDateTimeConverter;
 
 /**
  * Java side of the 'datePicker' composite component that supports

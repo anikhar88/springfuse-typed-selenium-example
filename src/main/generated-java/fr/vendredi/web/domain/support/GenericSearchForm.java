@@ -9,14 +9,14 @@
 package fr.vendredi.web.domain.support;
 
 import java.io.Serializable;
-import javax.inject.Inject;
 import javax.annotation.PostConstruct;
-
-import fr.vendredi.domain.Identifiable;
+import javax.inject.Inject;
 import fr.vendredi.dao.support.SearchParameters;
+import fr.vendredi.domain.Identifiable;
 import fr.vendredi.web.conversation.Conversation;
 import fr.vendredi.web.conversation.ConversationContext;
 import fr.vendredi.web.conversation.ConversationManager;
+import fr.vendredi.web.util.MessageUtil;
 
 /**
  * Base Search Form for JPA entities.
@@ -27,6 +27,8 @@ public abstract class GenericSearchForm<E extends Identifiable<PK>, PK extends S
 
     @Inject
     private transient ConversationManager conversationManager;
+    @Inject
+    private transient MessageUtil messageUtil;
 
     @SuppressWarnings("unchecked")
     @PostConstruct
@@ -83,6 +85,7 @@ public abstract class GenericSearchForm<E extends Identifiable<PK>, PK extends S
     public abstract void resetWithOther(F other);
 
     public void reset() {
+        messageUtil.info("search_reseted");
         setSearchFormName(null);
         resetWithOther(newInstance());
     }
