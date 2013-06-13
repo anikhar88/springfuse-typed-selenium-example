@@ -14,7 +14,6 @@ import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.springframework.web.util.JavaScriptUtils.javaScriptEscape;
 
@@ -374,17 +373,8 @@ public class WebClient {
 	}
 
 	public void clickCss(String css) {
+		System.out.println("Clicking via css " + css);
 		click(By.cssSelector(css));
-	}
-
-	public void click(By by) {
-		try {
-			waitUntilDisplayed(by);
-			click(find(by));
-		} catch (StaleElementReferenceException e) {
-			error("Not found " + by.toString());
-			throw e;
-		}
 	}
 
 	public List<WebElement> findAllNow(By by) {
@@ -415,21 +405,25 @@ public class WebClient {
 	}
 
 	public void click(WebElement webElement) {
-		message("Clicking on " + toReadableString(webElement), TRACE);
-		waitUntilDisplayed(webElement);
-		highlight(webElement);
-		webElement.click();
-		sleep(waitAfterClickInMs);
+		click(webElement, null);
 	}
 
-	private void highlight(WebElement webElement) {
-		String id = webElement.getAttribute("id");
-		if (isBlank(id)) {
-			return;
+	public void click(By by) {
+		try {
+			waitUntilDisplayed(by);
+			click(find(by), by);
+		} catch (StaleElementReferenceException e) {
+			error("Not found " + by.toString());
+			throw e;
 		}
-		String highlight = "jQuery(\"#" + javaScriptEscape(id).replace(":", "\\\\:") + "\").css(\"background-color\", \"yellow\");";
-		((JavascriptExecutor) webDriver).executeScript(highlight);
+	}
 
+	public void click(WebElement webElement, By by) {
+		message("Clicking on " + toReadableString(webElement), TRACE);
+		waitUntilDisplayed(webElement);
+		new Highlighter().highlight(((JavascriptExecutor) webDriver), webElement, by);
+		webElement.click();
+		sleep(waitAfterClickInMs);
 	}
 
 	public void page(String relative) {
