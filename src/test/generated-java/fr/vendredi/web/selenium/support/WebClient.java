@@ -9,11 +9,20 @@
 package fr.vendredi.web.selenium.support;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static fr.vendredi.web.selenium.support.WebClient.FollowLevel.TRACE;
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.springframework.web.util.JavaScriptUtils.javaScriptEscape;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -28,9 +37,7 @@ import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.TakesScreenshot;
-import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebDriver.Timeouts;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
@@ -46,421 +53,518 @@ import com.google.common.base.Function;
 import fr.vendredi.web.selenium.support.elements.WebElementConfiguration;
 
 public class WebClient {
-    public final WebDriver webDriver;
-    Timeouts timeout;
-    public final String baseUrl;
+	public static final int WAIT_BEFORE_STOP_IN_S = 5;
+	public static final int WAIT_AFTER_CLICK_IN_MS = 250;
+	public static final int WAIT_AFTER_CLEAR_IN_MS = 250;
+	public static final int WAIT_AFTER_STEP_IN_MS = 1500;
+	public static final int WAIT_AFTER_FILL_IN_MS = 250;
+	public static final int WAIT_AFTER_NOTIFICATION_IN_MS = 1000;
 
-    private long driverWaitBeforeStopInSeconds = 5;
-    private long waitAfterClickInMs = 0;
-    private long waitAfterClearInMs = 0;
-    private long waitAfterStepInMs = 0;
-    private long waitAfterFillMs = 0;
-    private long waitAfterNotificationMs = 0;
-    private boolean followVisually;
+	public enum FollowLevel {
+		INFO, DEBUG, TRACE
+	}
 
-    public WebClient(WebClientBuilder builder) {
-        this.webDriver = builder.webDriver;
-        this.baseUrl = builder.baseUrl;
-        this.driverWaitBeforeStopInSeconds = builder.waitTimeInSeconds;
-        this.followVisually = builder.followVisually;
-        if (followVisually) {
-            waitAfterClickInMs = 250;
-            waitAfterClearInMs = 250;
-            waitAfterStepInMs = 4000;
-            waitAfterFillMs = 250;
-            waitAfterNotificationMs = 2000;
-        }
-        timeout = webDriver.manage().timeouts().implicitlyWait(driverWaitBeforeStopInSeconds, TimeUnit.SECONDS);
-        webDriver.manage().window().setSize(new Dimension(1280, 1024));
+	@Target(TYPE)
+	@Retention(RUNTIME)
+	@Documented
+	public @interface FollowVisually {
 
-        new WebElementConfiguration().configure(builder.testInstance, this);
-    }
+		long waitAfterClickInMs() default WAIT_AFTER_CLICK_IN_MS;
 
-    public void fast() {
-        webDriver.manage().timeouts().implicitlyWait(0, TimeUnit.SECONDS);
-    }
+		long waitAfterClearInMs() default WAIT_AFTER_CLEAR_IN_MS;
 
-    public void back() {
-        webDriver.manage().timeouts().implicitlyWait(driverWaitBeforeStopInSeconds, TimeUnit.SECONDS);
-    }
+		long waitAfterStepInMs() default WAIT_AFTER_STEP_IN_MS;
 
-    public void hasTitle(String title) {
-        hasText("<title>" + title + "</title>");
-    }
+		long waitAfterFillInMs() default WAIT_AFTER_FILL_IN_MS;
 
-    public void hasText(String text) {
-        try {
-            until(contains(text));
-            success("Found [" + text + "]");
-        } catch (RuntimeException e) {
-            error("Could not find [" + text + "]", e);
-        }
-    }
+		long waitAfterNotificationInMs() default WAIT_AFTER_NOTIFICATION_IN_MS;
 
-    public void hasText(WebElement webElement, String text) {
-        try {
-            until(new TextContains(webElement, text));
-            success("Found [" + text + "]");
-        } catch (RuntimeException e) {
-            error("Could not find [" + text + "]", e);
-        }
-    }
+		FollowLevel level() default FollowLevel.INFO;
+	}
 
-    public void hasNotText(WebElement webElement, String text) {
-        try {
-            until(new TextNotEquals(webElement, text));
-            success("Found different text than [" + text + "]");
-        } catch (RuntimeException e) {
-            error("Could not find a text different to [" + text + "]", e);
-        }
-    }
+	public final WebDriver webDriver;
+	private final String baseUrl;
+	private final long driverWaitBeforeStopInSeconds;
+	private final long waitAfterClickInMs;
+	private final long waitAfterClearInMs;
+	private final long waitAfterStepInMs;
+	private final long waitAfterFillInMs;
+	private final long waitAfterNotificationInMs;
+	private final boolean followVisually;
+	private final FollowLevel followLevel;
 
-    public void waitUntilDisplayed(By by) {
-        try {
-            until(displayed(by));
-        } catch (RuntimeException e) {
-            error("not displayed " + by, e);
-        }
-    }
+	public WebClient(WebClientBuilder builder) {
+		this.webDriver = builder.webDriver;
+		this.baseUrl = builder.baseUrl;
+		this.driverWaitBeforeStopInSeconds = builder.waitBeforeStopInSeconds;
+		this.waitAfterClickInMs = builder.waitAfterClickInMs;
+		this.waitAfterClearInMs = builder.waitAfterClearInMs;
+		this.waitAfterStepInMs = builder.waitAfterStepInMs;
+		this.waitAfterFillInMs = builder.waitAfterFillInMs;
+		this.waitAfterNotificationInMs = builder.waitAfterNotificationInMs;
+		this.followVisually = builder.followVisually;
+		this.followLevel = builder.followLevel;
 
-    public void waitUntilRemoved(By by) {
-        try {
-            until(removed(by, driverWaitBeforeStopInSeconds));
-        } catch (RuntimeException e) {
-            error("not removed " + by, e);
-        }
-    }
+		webDriver.manage().timeouts().implicitlyWait(driverWaitBeforeStopInSeconds, TimeUnit.SECONDS);
+		webDriver.manage().window().setSize(new Dimension(1280, 1024));
+		new WebElementConfiguration().configure(builder.testInstance, this);
+	}
 
-    public void waitUntilDisplayed(WebElement webElement) {
-        try {
-            until(displayed(webElement));
-        } catch (RuntimeException e) {
-            error("element " + webElement.getTagName() + " is not displayed", e);
-        }
-    }
+	public void fast() {
+		webDriver.manage().timeouts().implicitlyWait(0, TimeUnit.SECONDS);
+	}
 
-    public void waitUntilEnabled(WebElement webElement) {
-        try {
-            until(enabled(webElement));
-        } catch (RuntimeException e) {
-            error("element " + webElement.getTagName() + " is not enabled", e);
-        }
-    }
+	public void back() {
+		webDriver.manage().timeouts().implicitlyWait(driverWaitBeforeStopInSeconds, TimeUnit.SECONDS);
+	}
 
-    public void waitUntilEnabled(By by) {
-        try {
-            until(enabled(by));
-        } catch (RuntimeException e) {
-            error("element " + by + " is not enabled", e);
-        }
-    }
+	public void hasTitle(String title) {
+		hasText("<title>" + title + "</title>");
+	}
 
-    public boolean until(Function<WebDriver, Boolean> function) {
-        StopWatch stopWatch = new StopWatch();
-        stopWatch.start();
-        try {
-            // iterate until we have no more StaleElementReferenceException
-            while (true) {
-                try {
-                    return tryUntil(function);
-                } catch (StaleElementReferenceException e) {
-                    //
-                }
-            }
-        } finally {
-            stopWatch.stop();
-            // System.out.println(function.getClass().getName() + " took " + stopWatch.getTotalTimeSeconds() + "s");
-        }
-    }
+	public void hasText(final String text) {
+		try {
+			until(new ExpectedCondition<Boolean>() {
+				@Override
+				public Boolean apply(WebDriver from) {
+					return from.getPageSource().contains(text);
+				}
+			});
+			success("Found [" + text + "]");
+		} catch (RuntimeException e) {
+			error("Could not find [" + text + "]", e);
+		}
+	}
 
-    private boolean tryUntil(Function<WebDriver, Boolean> function) {
-        // test the function now
-        if (function.apply(webDriver)) {
-            return true;
-        }
-        // nope ? ok, once more
-        if (function.apply(webDriver)) {
-            return true;
-        }
-        // test for 1 second with very rapid tests
-        try {
-            if (new WebDriverWait(webDriver, 1).until(function)) {
-                return true;
-            }
-        } catch (TimeoutException e) {
-            // no op
-        }
-        // ok it's still not ready, so let's wait
-        return new WebDriverWait(webDriver, driverWaitBeforeStopInSeconds).until(function);
-    }
+	public void hasText(final WebElement webElement, final String text) {
+		try {
+			until(new ExpectedCondition<Boolean>() {
+				@Override
+				public synchronized Boolean apply(WebDriver driver) {
+					return containsIgnoreCase(webElement.getText(), text.trim());
+				}
+			});
+			success("Found [" + text + "]");
+		} catch (RuntimeException e) {
+			error("Could not find [" + text + "]", e);
+		}
+	}
 
-    public static ExpectedCondition<Boolean> contains(final String text) {
-        return new ExpectedCondition<Boolean>() {
-            @Override
-            public Boolean apply(WebDriver from) {
-                return from.getPageSource().contains(text);
-            }
-        };
-    }
+	public void hasNotText(final WebElement webElement, final String text) {
+		try {
+			until(new ExpectedCondition<Boolean>() {
+				@Override
+				public synchronized Boolean apply(WebDriver driver) {
+					return containsIgnoreCase(webElement.getText(), text.trim());
+				}
+			});
+			success("Found different text than [" + text + "]");
+		} catch (RuntimeException e) {
+			error("Could not find a text different to [" + text + "]", e);
+		}
+	}
 
-    public static ExpectedCondition<Boolean> displayed(final WebElement webElement) {
-        return new ExpectedCondition<Boolean>() {
-            @Override
-            public Boolean apply(WebDriver from) {
-                return webElement.isDisplayed();
-            }
-        };
-    }
+	public void waitUntilDisplayed(final By by) {
+		try {
+			until(new ExpectedCondition<Boolean>() {
+				@Override
+				public Boolean apply(WebDriver from) {
+					return from.findElement(by).isDisplayed();
+				}
+			});
+		} catch (RuntimeException e) {
+			error("not displayed " + by, e);
+		}
+	}
 
-    public static ExpectedCondition<Boolean> removed(final By by, final long driverWaitBeforeStopInSeconds) {
-        return new ExpectedCondition<Boolean>() {
-            @Override
-            public Boolean apply(WebDriver from) {
-                try {
-                    from.manage().timeouts().implicitlyWait(0, TimeUnit.SECONDS);
-                    return from.findElements(by).isEmpty();
-                } catch (NoSuchElementException e) {
-                    return true;
-                } catch (StaleElementReferenceException e) {
-                    e.printStackTrace();
-                    return false;
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    return false;
-                } finally {
-                    from.manage().timeouts().implicitlyWait(driverWaitBeforeStopInSeconds, TimeUnit.SECONDS);
-                }
-            }
-        };
-    }
+	public void waitUntilRemoved(final By by) {
+		try {
+			until(new ExpectedCondition<Boolean>() {
+				@Override
+				public Boolean apply(WebDriver from) {
+					from.manage().timeouts().implicitlyWait(0, TimeUnit.SECONDS);
+					try {
+						return from.findElements(by).isEmpty();
+					} catch (NoSuchElementException e) {
+						return true;
+					} finally {
+						from.manage().timeouts().implicitlyWait(driverWaitBeforeStopInSeconds, TimeUnit.SECONDS);
+					}
+				}
+			});
+		} catch (RuntimeException e) {
+			error("not removed " + by, e);
+		}
+	}
 
-    public static ExpectedCondition<Boolean> displayed(final By by) {
-        return new ExpectedCondition<Boolean>() {
-            @Override
-            public Boolean apply(WebDriver from) {
-                try {
-                    WebElement findElement = from.findElement(by);
-                    return findElement.isDisplayed();
-                } catch (NoSuchElementException e) {
-                    e.printStackTrace();
-                    return false;
-                } catch (StaleElementReferenceException e) {
-                    e.printStackTrace();
-                    return false;
-                }
-            }
-        };
-    }
+	public void waitUntilDisplayed(final WebElement webElement) {
+		try {
+			until(new ExpectedCondition<Boolean>() {
+				@Override
+				public Boolean apply(WebDriver from) {
+					return webElement.isDisplayed();
+				}
+			});
+		} catch (RuntimeException e) {
+			error("element " + webElement.getTagName() + " is not displayed", e);
+		}
+	}
 
-    public static ExpectedCondition<Boolean> enabled(final WebElement webElement) {
-        return new ExpectedCondition<Boolean>() {
-            @Override
-            public Boolean apply(WebDriver from) {
-                return webElement.isEnabled();
-            }
-        };
-    }
+	public void waitUntilEnabled(final WebElement webElement) {
+		try {
+			until(new ExpectedCondition<Boolean>() {
+				@Override
+				public Boolean apply(WebDriver from) {
+					return webElement.isEnabled();
+				}
+			});
+		} catch (RuntimeException e) {
+			error("element " + webElement.getTagName() + " is not enabled", e);
+		}
+	}
 
-    public static ExpectedCondition<Boolean> enabled(final By by) {
-        return new ExpectedCondition<Boolean>() {
-            @Override
-            public Boolean apply(WebDriver from) {
-                return from.findElement(by).isEnabled();
-            }
-        };
-    }
+	public void waitUntilEnabled(final By by) {
+		try {
+			until(new ExpectedCondition<Boolean>() {
+				@Override
+				public Boolean apply(WebDriver from) {
+					return from.findElement(by).isEnabled();
+				}
+			});
+		} catch (RuntimeException e) {
+			error("element " + by + " is not enabled", e);
+		}
+	}
 
-    public void step(String text) {
-        if (followVisually) {
-            message(text);
-            sleep(waitAfterStepInMs);
-        }
-    }
+	public void waitUntilFound(final By by) {
+		try {
+			until(new ExpectedCondition<Boolean>() {
+				@Override
+				public Boolean apply(WebDriver from) {
+					return !from.findElements(by).isEmpty();
+				}
+			});
+		} catch (RuntimeException e) {
+			error("element " + by + "could not be found", e);
+		}
+	}
 
-    public void message(String text) {
-        notification(text, "info");
-    }
+	public void waitUntilInvisible(final By by) {
+		try {
+			until(new ExpectedCondition<Boolean>() {
+				@Override
+				public Boolean apply(WebDriver from) {
+					WebElement findElement = from.findElement(by);
+					return !findElement.isDisplayed();
+				}
+			});
+		} catch (RuntimeException e) {
+			error("element " + by + " is visible", e);
+		}
+	}
 
-    public void warning(String text) {
-        notification(text, "warn");
-    }
+	public boolean until(Function<WebDriver, Boolean> function) {
+		StopWatch stopWatch = new StopWatch();
+		stopWatch.start();
+		try {
+			// iterate until we have no more StaleElementReferenceException
+			while (true) {
+				try {
+					return tryUntil(function);
+				} catch (StaleElementReferenceException e) {
+					//
+				}
+			}
+		} finally {
+			stopWatch.stop();
+			message(function.getClass().getName() + " took " + stopWatch.getTotalTimeSeconds() + "s", FollowLevel.TRACE);
+		}
+	}
 
-    public void error(String text, Throwable e) {
-        if (followVisually) {
-            notification(text, "error");
-            sleep(60);
-        }
-        throw new RuntimeException(text, e);
-    }
+	private boolean tryUntil(Function<WebDriver, Boolean> function) {
+		// test the function now
+		if (function.apply(webDriver)) {
+			return true;
+		}
+		// nope ? ok, once more
+		if (function.apply(webDriver)) {
+			return true;
+		}
+		// test for 1 second with very rapid tests
+		try {
+			if (new WebDriverWait(webDriver, 1).until(function)) {
+				return true;
+			}
+		} catch (Exception e) {
+			// no op
+		}
+		// ok it's still not ready, so let's wait
+		return new WebDriverWait(webDriver, driverWaitBeforeStopInSeconds).until(function);
+	}
 
-    public void success(String text) {
-        notification(text, "succ_bg");
-    }
+	public void step(String text) {
+		if (followVisually) {
+			message(text);
+			sleep(waitAfterStepInMs);
+		}
+	}
 
-    public void notification(String text, String type) {
-        if (!followVisually) {
-            return;
-        }
-        String notification = "growlNotificationBar.renderMessage({detail: '" + javaScriptEscape(text) + "', severity: '" + type + "'});";
-        ((JavascriptExecutor) webDriver).executeScript(notification);
-        sleep(waitAfterNotificationMs);
-    }
+	public void message(String text) {
+		message(text, FollowLevel.INFO);
+	}
 
-    public void sleep(long sleepInMs) {
-        try {
-            MILLISECONDS.sleep(sleepInMs);
-        } catch (InterruptedException ignore) {
-            Thread.currentThread().interrupt();
-        }
-    }
+	public void message(String text, FollowLevel level) {
+		notification(text, level, "info");
+	}
 
-    public void clickLinkTitle(String title) {
-        clickCss("a[title=\"" + javaScriptEscape(title) + "\"]");
-    }
+	public void warning(String text) {
+		notification(text, FollowLevel.INFO, "warn");
+	}
 
-    public void clickCss(String css) {
-        click(By.cssSelector(css));
-    }
+	public void error(String text) {
+		if (followVisually) {
+			notification(text, FollowLevel.INFO, "error");
+			sleep(60);
+		}
+		throw new RuntimeException(text);
+	}
 
-    public void click(By by) {
-        try {
-            waitUntilDisplayed(by);
-            click(find(by));
-        } catch (StaleElementReferenceException e) {
-            System.out.println("Not found " + by.toString());
-            throw e;
-        }
-    }
+	public void error(String text, Throwable e) {
+		if (followVisually) {
+			notification(text, FollowLevel.INFO, "error");
+			sleep(60);
+		}
+		throw new RuntimeException(text, e);
+	}
 
-    public List<WebElement> findAllNow(By by) {
-        fast();
-        try {
-            return findAll(by);
-        } finally {
-            back();
-        }
-    }
+	public void success(String text) {
+		success(text, this.followLevel);
+	}
 
-    public List<WebElement> findAll(By by) {
-        StopWatch stopWatch = new StopWatch();
-        stopWatch.start();
-        int i = 0;
-        try {
-            List<WebElement> findElements = webDriver.findElements(by);
-            i = findElements.size();
-            return findElements;
-        } finally {
-            stopWatch.stop();
-            System.out.println("found " + i + " results in " + stopWatch.getTotalTimeSeconds() + "s for " + by);
-        }
-    }
+	public void success(String text, FollowLevel followLevel) {
+		notification(text, followLevel, "info");
+	}
 
-    public WebElement find(By by) {
-        return webDriver.findElement(by);
-    }
+	public void notification(String text, FollowLevel followLevel, String type) {
+		if (!followVisually) {
+			return;
+		}
+		if (followLevel.ordinal() > this.followLevel.ordinal()) {
+			return;
+		}
+		String notification = "growlNotificationBar.renderMessage({detail: '" + javaScriptEscape(text) + "', severity: '" + type + "'});";
+		((JavascriptExecutor) webDriver).executeScript(notification);
+		sleep(waitAfterNotificationInMs);
+	}
 
-    public void click(WebElement webElement) {
-        message("Clicking");
-        waitUntilDisplayed(webElement);
-        webElement.click();
-        sleep(waitAfterClickInMs);
-    }
+	public void sleep(long sleepInMs) {
+		sleep(MILLISECONDS, sleepInMs);
+	}
 
-    public void page(String relative) {
-        webDriver.get(baseUrl + relative);
-    }
+	public void sleep(TimeUnit unit, long sleepInMs) {
+		try {
+			unit.sleep(sleepInMs);
+		} catch (InterruptedException ignore) {
+			Thread.currentThread().interrupt();
+		}
+	}
 
-    public void clear(WebElement... webElements) {
-        for (WebElement webElement : webElements) {
-            webElement.clear();
-            sleep(waitAfterClearInMs);
-        }
-    }
+	public void clickLinkTitle(String title) {
+		clickCss("a[title=\"" + javaScriptEscape(title) + "\"]");
+	}
 
-    public void fill(By by, String text) {
-        fill(find(by), text);
-    }
+	public void clickCss(String css) {
+		click(By.cssSelector(css));
+	}
 
-    public void fill(WebElement webElement, String text) {
-        waitUntilDisplayed(webElement);
-        webElement.clear();
-        webElement.sendKeys(text);
-        sleep(waitAfterFillMs);
-    }
+	public void click(By by) {
+		try {
+			waitUntilDisplayed(by);
+			click(find(by));
+		} catch (StaleElementReferenceException e) {
+			error("Not found " + by.toString());
+			throw e;
+		}
+	}
 
-    public void selectComboValue(WebElement webElement, String value) {
-        new Select(webElement).selectByValue(value);
-    }
+	public List<WebElement> findAllNow(By by) {
+		fast();
+		try {
+			return findAll(by);
+		} finally {
+			back();
+		}
+	}
 
-    public void close() {
-        webDriver.close();
-    }
+	public List<WebElement> findAll(By by) {
+		StopWatch stopWatch = new StopWatch();
+		stopWatch.start();
+		int i = 0;
+		try {
+			List<WebElement> findElements = webDriver.findElements(by);
+			i = findElements.size();
+			return findElements;
+		} finally {
+			stopWatch.stop();
+			message("found " + i + " results in " + stopWatch.getTotalTimeSeconds() + "s for " + by, FollowLevel.TRACE);
+		}
+	}
 
-    public void takeScreenshot(String description) {
-        if (webDriver instanceof TakesScreenshot) {
-            try {
-                File source = ((TakesScreenshot) webDriver).getScreenshotAs(OutputType.FILE);
-                String extension = FilenameUtils.getExtension(source.getAbsolutePath());
-                String date = DateFormatUtils.format(new Date(), "HH-mm-ss");
-                String path = "./target/screenshots/" + description + "_" + date + "." + extension;
-                FileUtils.copyFile(source, new File(path));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
+	public WebElement find(By by) {
+		return webDriver.findElement(by);
+	}
 
-    public static class WebClientBuilder {
-        WebDriver webDriver;
-        int waitTimeInSeconds = 10;
-        Object testInstance;
-        String baseUrl;
-        boolean followVisually = true;
+	public void click(WebElement webElement) {
+		message("Clicking on " + toReadableString(webElement), TRACE);
+		waitUntilDisplayed(webElement);
+		highlight(webElement);
+		webElement.click();
+		sleep(waitAfterClickInMs);
+	}
 
-        public static WebClientBuilder newWebClient() {
-            return new WebClientBuilder();
-        }
+	private void highlight(WebElement webElement) {
+		String id = webElement.getAttribute("id");
+		if (isBlank(id)) {
+			return;
+		}
+		String highlight = "jQuery(\"#" + javaScriptEscape(id).replace(":", "\\\\:") + "\").css(\"background-color\", \"yellow\");";
+		((JavascriptExecutor) webDriver).executeScript(highlight);
 
-        public WebClientBuilder waitTimeInSeconds(int waitTimeInSeconds) {
-            this.waitTimeInSeconds = waitTimeInSeconds;
-            return this;
-        }
+	}
 
-        public WebClientBuilder baseUrl(String baseUrl) {
-            this.baseUrl = baseUrl;
-            return this;
-        }
+	public void page(String relative) {
+		webDriver.get(baseUrl + relative);
+	}
 
-        public WebClientBuilder onTest(Object testInstance) {
-            this.testInstance = testInstance;
-            return this;
-        }
+	public void clear(WebElement... webElements) {
+		for (WebElement webElement : webElements) {
+			webElement.clear();
+			sleep(waitAfterClearInMs);
+		}
+	}
 
-        public WebClientBuilder followVisually(boolean followVisually) {
-            this.followVisually = followVisually;
-            return this;
-        }
+	public void fill(By by, String text) {
+		fill(find(by), text);
+	}
 
-        public WebClientBuilder webDriver(String driver) {
-            if ("htmlunit".equalsIgnoreCase(driver)) {
-                this.webDriver = new HtmlUnitDriver(true);
-            } else if ("firefox".equalsIgnoreCase(driver)) {
-                this.webDriver = new FirefoxDriver();
-            } else if ("ie".equalsIgnoreCase(driver)) {
-                this.webDriver = new InternetExplorerDriver();
-            } else if ("chrome".equalsIgnoreCase(driver)) {
-                this.webDriver = new ChromeDriver();
-            } else {
-                throw new IllegalArgumentException(driver + " is not a valid web driver");
-            }
-            return this;
-        }
+	public void fill(WebElement webElement, String text) {
+		waitUntilDisplayed(webElement);
+		message("Type " + text + " in " + toReadableString(webElement), TRACE);
+		webElement.clear();
+		webElement.sendKeys(text);
+		sleep(waitAfterFillInMs);
+	}
 
-        public WebClient build() {
-            checkNotNull(baseUrl);
-            checkNotNull(testInstance);
-            checkNotNull(webDriver);
-            return new WebClient(this);
-        }
-    }
+	private String toReadableString(WebElement webElement) {
+		String value = webElement.getAttribute("id");
+		if (isNotBlank(value)) {
+			return value;
+		}
+		value = webElement.getAttribute("name");
+		if (isNotBlank(value)) {
+			return value;
+		}
+		return webElement.getTagName();
+	}
+
+	public void selectComboValue(WebElement webElement, String value) {
+		new Select(webElement).selectByValue(value);
+	}
+
+	public void close() {
+		webDriver.close();
+	}
+
+	public void takeScreenshot(String description) {
+		if (webDriver instanceof TakesScreenshot) {
+			try {
+				File source = ((TakesScreenshot) webDriver).getScreenshotAs(OutputType.FILE);
+				String extension = FilenameUtils.getExtension(source.getAbsolutePath());
+				String date = DateFormatUtils.format(new Date(), "HH-mm-ss");
+				String path = "./target/screenshots/" + description + "_" + date + "." + extension;
+				FileUtils.copyFile(source, new File(path));
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+	}
+
+	public static class WebClientBuilder {
+		WebDriver webDriver;
+		Object testInstance;
+		String baseUrl;
+		boolean followVisually = true;
+		int waitBeforeStopInSeconds = WAIT_BEFORE_STOP_IN_S;
+		long waitAfterClickInMs = WAIT_AFTER_CLICK_IN_MS;
+		long waitAfterClearInMs = WAIT_AFTER_CLICK_IN_MS;
+		long waitAfterStepInMs = WAIT_AFTER_STEP_IN_MS;
+		long waitAfterFillInMs = WAIT_AFTER_FILL_IN_MS;
+		long waitAfterNotificationInMs = WAIT_AFTER_NOTIFICATION_IN_MS;
+		FollowLevel followLevel = FollowLevel.INFO;
+
+		public static WebClientBuilder newWebClient() {
+			return new WebClientBuilder();
+		}
+
+		public WebClientBuilder waitTimeInSeconds(int waitTimeInSeconds) {
+			this.waitBeforeStopInSeconds = waitTimeInSeconds;
+			return this;
+		}
+
+		public WebClientBuilder baseUrl(String baseUrl) {
+			this.baseUrl = baseUrl;
+			return this;
+		}
+
+		public WebClientBuilder followLevel(FollowLevel followLevel) {
+			this.followLevel = followLevel;
+			return this;
+		}
+
+		public WebClientBuilder onTest(Object testInstance) {
+			this.testInstance = testInstance;
+			followVisally(testInstance);
+			return this;
+		}
+
+		private void followVisally(Object testInstance) {
+			if (!testInstance.getClass().isAnnotationPresent(FollowVisually.class)) {
+				return;
+			}
+			FollowVisually follow = testInstance.getClass().getAnnotation(FollowVisually.class);
+			waitAfterClickInMs = follow.waitAfterClickInMs();
+			waitAfterClearInMs = follow.waitAfterClearInMs();
+			waitAfterStepInMs = follow.waitAfterStepInMs();
+			waitAfterFillInMs = follow.waitAfterFillInMs();
+			waitAfterNotificationInMs = follow.waitAfterNotificationInMs();
+			this.followVisually = true;
+		}
+
+		public WebClientBuilder followVisually(boolean followVisually) {
+			this.followVisually = followVisually;
+			return this;
+		}
+
+		public WebClientBuilder webDriver(String driver) {
+			if ("htmlunit".equalsIgnoreCase(driver)) {
+				this.webDriver = new HtmlUnitDriver(true);
+			} else if ("firefox".equalsIgnoreCase(driver)) {
+				this.webDriver = new FirefoxDriver();
+			} else if ("ie".equalsIgnoreCase(driver)) {
+				this.webDriver = new InternetExplorerDriver();
+			} else if ("chrome".equalsIgnoreCase(driver)) {
+				this.webDriver = new ChromeDriver();
+			} else {
+				throw new IllegalArgumentException(driver + " is not a valid web driver");
+			}
+			return this;
+		}
+
+		public WebClient build() {
+			checkNotNull(baseUrl);
+			checkNotNull(testInstance);
+			checkNotNull(webDriver);
+			return new WebClient(this);
+		}
+	}
 }
