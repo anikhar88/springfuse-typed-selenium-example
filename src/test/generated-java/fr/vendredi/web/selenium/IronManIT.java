@@ -10,9 +10,6 @@ package fr.vendredi.web.selenium;
 
 import static org.fest.assertions.Assertions.assertThat;
 
-import java.util.concurrent.TimeUnit;
-
-import org.fest.assertions.Assertions;
 import org.junit.Test;
 
 import fr.vendredi.web.selenium.page.account.AccountEdit;
@@ -30,32 +27,40 @@ public class IronManIT extends SeleniumTest {
 		englishHomePage();
 		loginAsAnAdmin();
 		loggedHomePage.accounts();
-		webClient.message("toto");
+		webClient.message("Searching for stuff");
 		accountSearch.form.username.complete("dem", "demo");
 		accountSearch.form.username.type("admin");
 		accountSearch.form.isEnabled.choose(true);
 		accountSearch.form.search();
+		assertThat(accountSearch.table.column("username")).hasSize(2).containsExactly("admin", "demo");
 		accountSearch.table.hasSize(2);
-//		accountSearch.orders.username.up();
-//		accountSearch.table.hasSize(2);
-		accountSearch.table.editLine(1);
-//		accountEdit.form.username.type("iron man");
-//		accountEdit.form.homeAddress.complete("tokio", "Tokyo");
+		assertThat(accountSearch.table.columnAt("username", 1)).isEqualTo("admin");
+		assertThat(accountSearch.table.columnAt("username", 2)).isEqualTo("demo");
+		webClient.message("Sorting by name");
+		accountSearch.orders.username.up();
+		accountSearch.table.hasSize(2);
+		assertThat(accountSearch.table.columnAt("username", 1)).isEqualTo("admin");
+		assertThat(accountSearch.table.columnAt("username", 2)).isEqualTo("demo");
+		accountSearch.orders.username.down();
+		accountSearch.table.hasSize(2);
+		assertThat(accountSearch.table.columnAt("username", 1)).isEqualTo("demo");
+		assertThat(accountSearch.table.columnAt("username", 2)).isEqualTo("admin");
+		webClient.message("Click 2nd test");
+		accountSearch.table.editLine(2);
+		accountEdit.form.username.type("iron man");
+		accountEdit.form.homeAddress.complete("tokio", "Tokyo");
 		accountEdit.tabs.securityRoles.open();
-//		accountEdit.tabs.securityRoles.remove("ROLE_ADMIN");
-//		accountEdit.tabs.securityRoles.confirmRemove();
-//		accountEdit.tabs.securityRoles.remove("ROLE_MONITORING");
-//		accountEdit.tabs.securityRoles.confirmRemove();
-//		accountEdit.tabs.securityRoles.remove("ROLE_USER");
-//		accountEdit.tabs.securityRoles.confirmRemove();
-		System.out.println("Tab openend");
-		TimeUnit.SECONDS.sleep(2);
-		assertThat(accountEdit.tabs.securityRoles.values("roleName")).hasSize(3).contains("ROLE_ADMIN");
-		assertThat(accountEdit.tabs.securityRoles.value("roleName", 2)).isEqualTo("ROLE_USER");
+		assertThat(accountEdit.tabs.securityRoles.column("roleName")).hasSize(3).contains("ROLE_ADMIN");
+		assertThat(accountEdit.tabs.securityRoles.columnAt("roleName", 2)).isEqualTo("ROLE_USER");
+		accountEdit.tabs.securityRoles.remove("ROLE_ADMIN");
+		accountEdit.tabs.securityRoles.confirmRemove();
+		assertThat(accountEdit.tabs.securityRoles.column("roleName")).hasSize(2).containsExactly("ROLE_USER", "ROLE_MONITORING");
+		accountEdit.tabs.securityRoles.remove("ROLE_MONITORING");
+		accountEdit.tabs.securityRoles.confirmRemove();
+		accountEdit.tabs.securityRoles.remove("ROLE_USER");
+		accountEdit.tabs.securityRoles.confirmRemove();
 		accountEdit.tabs.securityRoles.search();
 		roleSearch.table.selectAll();
 		roleSearch.table.confirmSelection();
-		accountEdit.tabs.securityRoles.add();
-		TimeUnit.SECONDS.sleep(10);
 	}
 }
