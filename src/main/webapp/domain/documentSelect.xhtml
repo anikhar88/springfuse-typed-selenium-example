@@ -27,13 +27,13 @@
 			<c:if test="#{not multiCheckboxSelection}">
 				<p:ajax event="rowSelect" listener="#{documentLazyDataModel.onRowSelect}" />
 			</c:if>
-			<p:column headerText="#{msg.document_owner}" sortBy="#{item.owner.username}" styleClass="owner">
+			<p:column id="document_owner" headerText="#{msg.document_owner}" sortBy="#{item.owner.username}" styleClass="owner">
 				<h:outputText value="#{printer.print(item.owner)}" />
 			</p:column>
-			<p:column headerText="#{msg.document_documentBinary}" sortBy="#{item.documentBinary}" styleClass="documentBinary">
+			<p:column id="document_documentBinary" headerText="#{msg.document_documentBinary}" sortBy="#{item.documentBinary}" styleClass="documentBinary">
 				<app:outputFile filename="#{item.documentFileName}" stream="#{documentFileDownload.getDocumentBinaryStream(item)}"/>
 			</p:column>
-			<p:column headerText="#{msg.actions}" styleClass="actions-column" resizable="false">
+			<p:column id="actions" headerText="#{msg.actions}" styleClass="actions-column" resizable="false">
 				<app:iconSelect item="#{item}" />
 				<app:iconEdit item="#{item}" />
 				<app:iconView item="#{item}" />

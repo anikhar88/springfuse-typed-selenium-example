@@ -23,8 +23,9 @@
 			controller="#{accountController}" converter="#{accountJsfConverter}" model="#{documentEditForm.owner}" permission="#{accountPermission}">
 			<app:iconView item="#{documentEditForm.document.owner}" />
 		</app:autoComplete>
-		<app:inputFile id="documentBinary" label="document_documentBinary" object="#{documentEditForm.document}" filename="documentFileName"			fileupload="#{documentController.getDocumentFileUpload(documentEditForm.document)}" action="onDocumentBinaryFileUpload"
-			stream="#{documentFileDownload.getDocumentBinaryStream(documentEditForm.document)}" />
+		<app:inputFile id="documentBinary" label="document_documentBinary" object="#{documentEditForm.document}"
+			fileupload="#{documentController.getDocumentFileUpload(documentEditForm.document)}" stream="#{documentFileDownload.getDocumentBinaryStream(documentEditForm.document)}" 
+			action="onDocumentBinaryFileUpload" filename="documentFileName"/>
 	</ui:define>
 </app:edit>
 </ui:composition>

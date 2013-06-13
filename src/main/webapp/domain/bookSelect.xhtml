@@ -29,16 +29,16 @@
 			<c:if test="#{not multiCheckboxSelection}">
 				<p:ajax event="rowSelect" listener="#{bookLazyDataModel.onRowSelect}" />
 			</c:if>
-			<p:column headerText="#{msg.book_owner}" sortBy="#{item.owner.username}" styleClass="owner">
+			<p:column id="book_owner" headerText="#{msg.book_owner}" sortBy="#{item.owner.username}" styleClass="owner">
 				<h:outputText value="#{printer.print(item.owner)}" />
 			</p:column>
-			<p:column headerText="#{msg.book_bookTitle}" sortBy="#{item.bookTitle}" styleClass="bookTitle">
+			<p:column id="book_bookTitle" headerText="#{msg.book_bookTitle}" sortBy="#{item.bookTitle}" styleClass="bookTitle">
 				<h:outputText value="#{item.bookTitle}" />
 			</p:column>
-			<p:column headerText="#{msg.book_numberOfPages}" sortBy="#{item.numberOfPages}" styleClass="numberOfPages numeric">
+			<p:column id="book_numberOfPages" headerText="#{msg.book_numberOfPages}" sortBy="#{item.numberOfPages}" styleClass="numberOfPages numeric">
 				<h:outputText value="#{item.numberOfPages}" />
 			</p:column>
-			<p:column headerText="#{msg.actions}" styleClass="actions-column" resizable="false">
+			<p:column id="actions" headerText="#{msg.actions}" styleClass="actions-column" resizable="false">
 				<app:iconSelect item="#{item}" />
 				<app:iconEdit item="#{item}" />
 				<app:iconView item="#{item}" />

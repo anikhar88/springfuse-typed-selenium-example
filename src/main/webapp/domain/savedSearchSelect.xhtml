@@ -28,16 +28,16 @@
 			<c:if test="#{not multiCheckboxSelection}">
 				<p:ajax event="rowSelect" listener="#{savedSearchLazyDataModel.onRowSelect}" />
 			</c:if>
-			<p:column headerText="#{msg.savedSearch_name}" sortBy="#{item.name}" styleClass="name">
+			<p:column id="savedSearch_name" headerText="#{msg.savedSearch_name}" sortBy="#{item.name}" styleClass="name">
 				<h:outputText value="#{item.name}" />
 			</p:column>
-			<p:column headerText="#{msg.savedSearch_formClassname}" sortBy="#{item.formClassname}" styleClass="formClassname">
+			<p:column id="savedSearch_formClassname" headerText="#{msg.savedSearch_formClassname}" sortBy="#{item.formClassname}" styleClass="formClassname">
 				<h:outputText value="#{item.formClassname}" />
 			</p:column>
-			<p:column headerText="#{msg.savedSearch_formContent}" sortBy="#{item.formContent}" styleClass="formContent">
+			<p:column id="savedSearch_formContent" headerText="#{msg.savedSearch_formContent}" sortBy="#{item.formContent}" styleClass="formContent">
 				<app:outputFile stream="#{savedSearchFileDownload.getFormContentStream(item)}"/>
 			</p:column>
-			<p:column headerText="#{msg.actions}" styleClass="actions-column" resizable="false">
+			<p:column id="actions" headerText="#{msg.actions}" styleClass="actions-column" resizable="false">
 				<app:iconSelect item="#{item}" />
 				<app:iconEdit item="#{item}" />
 				<app:iconView item="#{item}" />

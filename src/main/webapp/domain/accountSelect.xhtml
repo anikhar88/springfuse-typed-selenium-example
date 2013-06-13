@@ -39,19 +39,19 @@
 			<c:if test="#{not multiCheckboxSelection}">
 				<p:ajax event="rowSelect" listener="#{accountLazyDataModel.onRowSelect}" />
 			</c:if>
-			<p:column headerText="#{msg.account_username}" sortBy="#{item.username}" styleClass="username">
+			<p:column id="account_username" headerText="#{msg.account_username}" sortBy="#{item.username}" styleClass="username">
 				<h:outputText value="#{item.username}" />
 			</p:column>
-			<p:column headerText="#{msg.account_email}" sortBy="#{item.email}" styleClass="email">
+			<p:column id="account_email" headerText="#{msg.account_email}" sortBy="#{item.email}" styleClass="email">
 				<h:outputText value="#{item.email}" />
 			</p:column>
-			<p:column headerText="#{msg.account_isEnabled}" sortBy="#{item.isEnabled}" styleClass="isEnabled">
+			<p:column id="account_isEnabled" headerText="#{msg.account_isEnabled}" sortBy="#{item.isEnabled}" styleClass="isEnabled">
 				<appcc:outputBoolean value="#{item.isEnabled}" />
 			</p:column>
-			<p:column headerText="#{msg.account_homeAddress}" sortBy="#{item.homeAddress.city}" styleClass="homeAddress">
+			<p:column id="account_homeAddress" headerText="#{msg.account_homeAddress}" sortBy="#{item.homeAddress.city}" styleClass="homeAddress">
 				<h:outputText value="#{printer.print(item.homeAddress)}" />
 			</p:column>
-			<p:column headerText="#{msg.actions}" styleClass="actions-column" resizable="false">
+			<p:column id="actions" headerText="#{msg.actions}" styleClass="actions-column" resizable="false">
 				<app:iconSelect item="#{item}" />
 				<app:iconEdit item="#{item}" />
 				<app:iconView item="#{item}" />

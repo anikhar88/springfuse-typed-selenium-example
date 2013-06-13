@@ -55,10 +55,10 @@
 					selection="#{accountEditForm.coolBooks.model.selectedRow}" selectionMode="single" emptyMessage="#{msg.collection_empty}">
 					<p:ajax event="rowSelect" listener="#{accountEditForm.coolBooks.onRowSelectEdit}" disabled="#{readonly}" />
 					<p:ajax event="rowSelect" listener="#{accountEditForm.coolBooks.onRowSelectView}" disabled="#{!readonly}"/>
-					<p:column headerText="#{msg.book_bookTitle}" styleClass="bookTitle">
+					<p:column id="book_bookTitle" headerText="#{msg.book_bookTitle}" styleClass="bookTitle">
 						<h:outputText value="#{item.bookTitle}" />
 					</p:column>
-					<p:column headerText="#{msg.book_numberOfPages}" styleClass="numberOfPages numeric">
+					<p:column id="book_numberOfPages" headerText="#{msg.book_numberOfPages}" styleClass="numberOfPages numeric">
 						<h:outputText value="#{item.numberOfPages}" />
 					</p:column>
 					<p:column id="actions" styleClass="actions-column" resizable="false">
@@ -85,7 +85,7 @@
 					selection="#{accountEditForm.edocs.model.selectedRow}" selectionMode="single" emptyMessage="#{msg.collection_empty}">
 					<p:ajax event="rowSelect" listener="#{accountEditForm.edocs.onRowSelectEdit}" disabled="#{readonly}" />
 					<p:ajax event="rowSelect" listener="#{accountEditForm.edocs.onRowSelectView}" disabled="#{!readonly}"/>
-					<p:column headerText="#{msg.document_documentBinary}" styleClass="documentBinary">
+					<p:column id="document_documentBinary" headerText="#{msg.document_documentBinary}" styleClass="documentBinary">
 						<app:outputFile filename="#{item.documentFileName}" stream="#{documentFileDownload.getDocumentBinaryStream(item)}" />	
 					</p:column>
 					<p:column id="actions" styleClass="actions-column" resizable="false">
@@ -112,7 +112,7 @@
 					selection="#{accountEditForm.securityRoles.model.selectedRow}" selectionMode="single" emptyMessage="#{msg.collection_empty}">
 					<p:ajax event="rowSelect" listener="#{accountEditForm.securityRoles.onRowSelectEdit}" disabled="#{readonly}" />
 					<p:ajax event="rowSelect" listener="#{accountEditForm.securityRoles.onRowSelectView}" disabled="#{!readonly}"/>
-					<p:column headerText="#{msg.role_roleName}" styleClass="roleName">
+					<p:column id="role_roleName" headerText="#{msg.role_roleName}" styleClass="roleName">
 						<h:outputText value="#{item.roleName}" />
 					</p:column>
 					<p:column id="actions" styleClass="actions-column" resizable="false">

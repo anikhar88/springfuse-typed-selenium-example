@@ -27,19 +27,19 @@
 			<c:if test="#{not multiCheckboxSelection}">
 				<p:ajax event="rowSelect" listener="#{legacyLazyDataModel.onRowSelect}" />
 			</c:if>
-			<p:column headerText="#{msg.legacy_name}" sortBy="#{item.name}" styleClass="name">
+			<p:column id="legacy_name" headerText="#{msg.legacy_name}" sortBy="#{item.name}" styleClass="name">
 				<h:outputText value="#{item.id.name}" />
 			</p:column>
-			<p:column headerText="#{msg.legacy_code}" sortBy="#{item.code}" styleClass="code">
+			<p:column id="legacy_code" headerText="#{msg.legacy_code}" sortBy="#{item.code}" styleClass="code">
 				<h:outputText value="#{item.id.code}" />
 			</p:column>
-			<p:column headerText="#{msg.legacy_dept}" sortBy="#{item.dept}" styleClass="dept numeric">
+			<p:column id="legacy_dept" headerText="#{msg.legacy_dept}" sortBy="#{item.dept}" styleClass="dept numeric">
 				<h:outputText value="#{item.id.dept}" />
 			</p:column>
-			<p:column headerText="#{msg.legacy_extraInfo}" sortBy="#{item.extraInfo}" styleClass="extraInfo">
+			<p:column id="legacy_extraInfo" headerText="#{msg.legacy_extraInfo}" sortBy="#{item.extraInfo}" styleClass="extraInfo">
 				<h:outputText value="#{item.extraInfo}" />
 			</p:column>
-			<p:column headerText="#{msg.actions}" styleClass="actions-column" resizable="false">
+			<p:column id="actions" headerText="#{msg.actions}" styleClass="actions-column" resizable="false">
 				<app:iconSelect item="#{item}" />
 				<app:iconEdit item="#{item}" />
 				<app:iconView item="#{item}" />
