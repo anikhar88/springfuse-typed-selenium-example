@@ -18,6 +18,7 @@ public class ChooseEnum<T extends Enum<? extends Enum<?>>> extends CustomElement
     }
 
     public void set(T value) {
+		webClient.message("Choose " + value + " for " + id);
         String xpathExpression = "//label[@for=contains(@for, " + getXPathString(id + ":" + value.ordinal()) + ")]";
         webClient.click(By.xpath(xpathExpression));
     }

@@ -8,9 +8,13 @@
  */
 package fr.vendredi.web.selenium.support.elements;
 
-import static org.openqa.selenium.By.name;
+import static com.google.common.collect.Lists.newArrayList;
+import static com.palominolabs.xpath.XPathUtils.getXPathString;
+
+import java.util.List;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
 
 public class TableAction extends CustomElement {
     public Paginator paginator;
@@ -25,10 +29,20 @@ public class TableAction extends CustomElement {
 
     public void delete(String value) {
         webClient.clickLinkTitle("Delete " + value);
-        confirmDelete();
     }
 
-    
+    public void confirmDelete() {
+        By yesButton = By.name("form:askForDeleteItemDialogYes");
+        webClient.click(yesButton);
+        webClient.waitUntilInvisible(yesButton);
+    }
+
+    public void cancelDelete() {
+        By noButton = By.name("form:askForDeleteItemDialogNo");
+        webClient.click(noButton);
+        webClient.waitUntilInvisible(noButton);
+    }
+
     public void select(String value) {
         webClient.clickLinkTitle("Select " + value);
     }
@@ -59,26 +73,45 @@ public class TableAction extends CustomElement {
         clickLineWithIcon(line, "iconDelete");
     }
 
-    public void confirmDelete() {
-        webClient.click(name("form:askForDeleteItemDialogYes"));
+    private void clickLineWithIcon(int line, String icon) {
+        String xpath = "//div[@id='form:searchResults']//table/tbody/tr[" + line + "]/td[contains(@class,'actions-column')]//div[contains(@class,'" + icon
+                + "')]";
+        webClient.click(By.xpath(xpath));
     }
 
-    private void clickLineWithIcon(int line, String icon) {
-        String xpath = "//div[@id='form:searchResults']//table/tbody/tr[" + line + "]/td[@class='actions-column']//div[@class='ui-button ui-icon " + icon
-                + "']";
-        webClient.click(By.xpath(xpath));
-    }
-    
     public void selectAll() {
-    	String xpath = "//table/thead[@id='form:searchResults_head']/tr/th[@id='form:searchResults:selectAll']/div[contains(@class, 'ui-chkbox-all')]/div[contains(@class, 'ui-chkbox-box')]";
-        webClient.waitUntilEnabled(By.xpath(xpath));
-        webClient.find(By.xpath(xpath)).click();
-        String unselectedCheckbox = "//div[@id='form:searchResults']//td[@class='ui-selection-column']//span[not(contains(@class,'ui-icon-check'))]";
-        webClient.waitUntilRemoved(By.xpath(unselectedCheckbox));
+        By selectAllCheckBox = By
+                .xpath("//table/thead[@id='form:searchResults_head']/tr/th[@id='form:searchResults:selectAll']/div[contains(@class,'ui-chkbox-all')]/div[contains(@class,'ui-chkbox-box')]");
+        webClient.waitUntilEnabled(selectAllCheckBox);
+        webClient.find(selectAllCheckBox).click();
+        By unselectedCheckboxes = By.xpath("//div[@id='form:searchResults']//td[@class='ui-selection-column']//span[not(contains(@class,'ui-icon-check'))]");
+        webClient.waitUntilRemoved(unselectedCheckboxes);
     }
-    
+
     public void confirmSelection() {
-    	String xpath = "//div[@id='form:searchResults']/div[contains(@class,'ui-datatable-footer')]//div[contains(@class,'iconSelect')]";
-        webClient.click(By.xpath(xpath));
+        String selectMultipleSelectionIcon = "//div[@id='form:searchResults']/div[contains(@class,'ui-datatable-footer')]//div[contains(@class,'iconSelect')]";
+        webClient.click(By.xpath(selectMultipleSelectionIcon));
+    }
+
+    /**
+     * Get the values for a given column
+     */
+    public List<String> column(String columnName) {
+        By values = By.xpath("//div[@id='form:searchResults']//tbody/tr/td[contains(@class," + getXPathString(columnName) + ")]");
+        webClient.waitUntilFound(values);
+        List<String> ret = newArrayList();
+        for (WebElement webElement : webClient.findAll(values)) {
+            ret.add(webElement.getText());
+        }
+        return ret;
+    }
+
+    /**
+     * Get the values for a given column and a line, please note that lines start at 1
+     */
+    public String columnAt(String columnName, int line) {
+        By value = By.xpath("//div[@id='form:searchResults']//tbody/tr[" + line + "]/td[contains(@class," + getXPathString(columnName) + ")]");
+        webClient.waitUntilFound(value);
+        return webClient.find(value).getText();
     }
 }

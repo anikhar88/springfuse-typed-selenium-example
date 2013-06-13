@@ -42,8 +42,8 @@ public class AccountEdit {
     };
 
     public static class AccountEditTabs extends CustomElement {
-        public Tab coolBooks = new Tab("Cool Books", "Book");
-        public Tab edocs = new Tab("Edocs", "Edoc");
+        public Tab coolBooks = new Tab("book", "coolBooks");
+        public Tab edocs = new Tab("edoc", "edocs");
         public Tab securityRoles = new Tab("securityRole", "securityRoles");
     };
 }

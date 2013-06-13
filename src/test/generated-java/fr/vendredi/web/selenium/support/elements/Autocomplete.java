@@ -43,6 +43,7 @@ public class Autocomplete extends CustomElement {
     }
 
     public void complete(String text, String match) {
+		webClient.message("Autocomplete " + text + " and select " + match);
         webClient.fill(byInput, text);
         waitForCompletionPanel();
         String matchedLi = "//div[@id=" + getXPathString(id + "_panel") + "]/ul/li[@data-item-label=" + XPathUtils.getXPathString(match) + "]";
