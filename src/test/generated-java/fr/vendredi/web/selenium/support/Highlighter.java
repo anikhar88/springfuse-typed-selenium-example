@@ -1,17 +1,18 @@
 package fr.vendredi.web.selenium.support;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang.StringUtils.isBlank;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
+import static org.apache.commons.lang.StringUtils.removeStart;
 import static org.springframework.web.util.JavaScriptUtils.javaScriptEscape;
 
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.By.ByCssSelector;
 import org.openqa.selenium.By.ByXPath;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebElement;
 
 public class Highlighter {
 	public void highlight(JavascriptExecutor executor, WebElement webElement, By by) {
@@ -19,14 +20,14 @@ public class Highlighter {
 		if (selector == null) {
 			return;
 		}
-		String highlight = "jQuery(" + selector + ").effect(\"highlight\",{color:\"#ffff00\"}, 700);";
+		String highlight = "jQuery(" + selector + ").effect(\"highlight\",{color:\"#ffff00\"}, 700).effect(\"pulsate\",{times: 2});";
 		executor.executeScript(highlight);
-		sleep();
+		sleep(1200);
 	}
 
-	private void sleep() {
+	private void sleep(int waitInMs) {
 		try {
-			TimeUnit.MILLISECONDS.sleep(800);
+			TimeUnit.MILLISECONDS.sleep(waitInMs);
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 		}
@@ -61,7 +62,7 @@ public class Highlighter {
 			return null;
 		}
 		ByCssSelector cssSelector = (ByCssSelector) by;
-		return "\"" + StringUtils.removeStart(cssSelector.toString(), "By.selector: ") + "\"";
+		return "\"" + removeStart(cssSelector.toString(), "By.selector: ") + "\"";
 	}
 
 	private String highlightByXpath(WebElement webElement, By by) {
@@ -69,16 +70,16 @@ public class Highlighter {
 			return null;
 		}
 		String xpath = "" //
-		+ "  function xpath(STR_XPATH) {                                                                    \n" //
-		+ "     var xresult = document.evaluate(STR_XPATH, document, null, XPathResult.ANY_TYPE, null);     \n" //
-		+ "     var xnodes = [];                                                                            \n" //
-		+ "     var xres;                                                                                   \n" //
-		+ "     while (xres = xresult.iterateNext()) {                                                      \n" //
-		+ "     	xnodes.push(xres);                                                                      \n" //
-		+ "     }                                                                                           \n" //
-		+ "     return xnodes;                                                                              \n" //
-		+ "  }(\"" + StringUtils.removeStart(by.toString(), "By.xpath: ") + "\")                            \n"; //
-		
+				+ "  function xpath(STR_XPATH) {                                                                    \n" //
+				+ "     var xresult = document.evaluate(STR_XPATH, document, null, XPathResult.ANY_TYPE, null);     \n" //
+				+ "     var xnodes = [];                                                                            \n" //
+				+ "     var xres;                                                                                   \n" //
+				+ "     while (xres = xresult.iterateNext()) {                                                      \n" //
+				+ "     	xnodes.push(xres);                                                                      \n" //
+				+ "     }                                                                                           \n" //
+				+ "     return xnodes;                                                                              \n" //
+				+ "  }(\"" + StringUtils.removeStart(by.toString(), "By.xpath: ") + "\")                            \n"; //
+
 		return xpath;
 	}
 }

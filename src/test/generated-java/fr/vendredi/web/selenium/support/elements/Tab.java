@@ -18,81 +18,88 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 
 public class Tab extends CustomElement {
-    String idPlural;
+	String idPlural;
 
-    public Tab(String id, String idPlural) {
-        super(id);
-        this.idPlural = idPlural;
-    }
+	public Tab(String id, String idPlural) {
+		super(id);
+		this.idPlural = idPlural;
+	}
 
-    public void open() {
+	public void open() {
 		webClient.message("Open tab " + id);
-        webClient.click(By.xpath("//div[@id='form:tabs']//a[@href='#form:tabs:" + idPlural + "']"));
-        webClient.waitUntilDisplayed(By.xpath("//div[@id='form:tabs:" + idPlural + "']"));
-    }
+		webClient.click(By.xpath("//div[@id='form:tabs']//a[@href='#form:tabs:" + idPlural + "']"));
+		webClient.waitUntilDisplayed(By.xpath("//div[@id='form:tabs:" + idPlural + "']"));
+	}
 
-    public void isOpened() {
-        webClient.find(By.xpath("//div[@id='form:tabs:" + idPlural + "']"));
-    }
+	public void isOpened() {
+		webClient.find(By.xpath("//div[@id='form:tabs:" + idPlural + "']"));
+	}
 
-    public void add() {
-        clickInHeaderUsingClass("iconAdd");
-    }
+	public void add() {
+		webClient.message("Add " + id);
+		clickInHeaderUsingClass("iconAdd");
+	}
 
-    public void search() {
-        clickInHeaderUsingClass("iconSearch");
-    }
+	public void search() {
+		webClient.message("Search " + id);
+		clickInHeaderUsingClass("iconSearch");
+	}
 
-    private void clickInHeaderUsingClass(String className) {
-        String xpath = "//div[@id='form:tabs:" + idPlural + "']//th[contains(@class,'actions-column')]//div[contains(@class,'" + className + "')]";
-        webClient.click(By.xpath(xpath));
-    }
+	private void clickInHeaderUsingClass(String className) {
+		String xpath = "//div[@id='form:tabs:" + idPlural + "']//th[contains(@class,'actions-column')]//div[contains(@class,'" + className + "')]";
+		webClient.click(By.xpath(xpath));
+	}
 
-    public void view(String value) {
-        webClient.clickLinkTitle("View " + value);
-    }
+	public void view(String value) {
+		webClient.message("View " + value);
+		webClient.clickLinkTitle("View " + value);
+	}
 
-    public void edit(String value) {
-        webClient.clickLinkTitle("Edit " + value);
-    }
+	public void edit(String value) {
+		webClient.message("Edit " + value);
+		webClient.clickLinkTitle("Edit " + value);
+	}
 
-    public void delete(String value) {
-        webClient.clickLinkTitle("Remove " + value);
-    }
+	public void delete(String value) {
+		webClient.message("Delete " + value);
+		webClient.clickLinkTitle("Remove " + value);
+	}
 
-    public void select(String value) {
-        webClient.clickLinkTitle("Select " + value);
-    }
+	public void select(String value) {
+		webClient.message("Select " + value);
+		webClient.clickLinkTitle("Select " + value);
+	}
 
-    public void remove(String value) {
-        webClient.clickLinkTitle("Remove " + value);
-    }
+	public void remove(String value) {
+		webClient.message("Remove " + value);
+		webClient.clickLinkTitle("Remove " + value);
+	}
 
-    public void confirmRemove() {
-        By yesButton = By.name("form:askForRemove" + WordUtils.capitalize(id) + "DialogYes");
-        webClient.click(yesButton);
-        webClient.waitUntilInvisible(yesButton);
-    }
+	public void confirmRemove() {
+		By yesButton = By.name("form:askForRemove" + WordUtils.capitalize(id) + "DialogYes");
+		webClient.click(yesButton);
+		webClient.waitUntilInvisible(yesButton);
+	}
 
-    public void cancelRemove() {
-        By noButton = By.name("form:askForRemove" + WordUtils.capitalize(id) + "DialogNo");
-        webClient.click(noButton);
-        webClient.waitUntilInvisible(noButton);
-    }
+	public void cancelRemove() {
+		By noButton = By.name("form:askForRemove" + WordUtils.capitalize(id) + "DialogNo");
+		webClient.click(noButton);
+		webClient.waitUntilInvisible(noButton);
+	}
 
-    public List<String> column(String columnName) {
-        By values = By.xpath("//div[@id='form:tabs:" + idPlural + "']//tr/td[contains(@class," + getXPathString(columnName) + ")]");
-        webClient.waitUntilFound(values);
-        List<String> ret = newArrayList();
-        for (WebElement webElement : webClient.findAll(values)) {
-            ret.add(webElement.getText());
-        }
-        return ret;
-    }
+	public List<String> column(String columnName) {
+		By values = By.xpath("//div[@id='form:tabs:" + idPlural + "']//tr/td[contains(@class," + getXPathString(columnName) + ")]");
+		webClient.waitUntilFound(values);
+		List<String> ret = newArrayList();
+		for (WebElement webElement : webClient.findAll(values)) {
+			ret.add(webElement.getText());
+		}
+		return ret;
+	}
 
-    public String columnAt(String columnName, int line) {
-        By valueAt = By.xpath("//tbody[@id='form:tabs:" + idPlural + "List_data']//tr[" + line + "]/td[contains(@class," + getXPathString(columnName) + ")]");
-        webClient.waitUntilFound(valueAt);
-        return webClient.find(valueAt).getText();
-    }
+	public String columnAt(String columnName, int line) {
+		By valueAt = By.xpath("//tbody[@id='form:tabs:" + idPlural + "List_data']//tr[" + line + "]/td[contains(@class," + getXPathString(columnName) + ")]");
+		webClient.waitUntilFound(valueAt);
+		return webClient.find(valueAt).getText();
+	}
 }

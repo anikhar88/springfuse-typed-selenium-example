@@ -8,6 +8,9 @@
  */
 package fr.vendredi.web.selenium.page.account;
 
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.FindBy;
+
 import fr.vendredi.domain.Civility;
 import fr.vendredi.web.selenium.support.Page;
 import fr.vendredi.web.selenium.support.elements.Autocomplete;
